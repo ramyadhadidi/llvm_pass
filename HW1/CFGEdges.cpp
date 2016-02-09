@@ -26,6 +26,7 @@ namespace {
       int numTotalCFG = 0;
       int max = 0;
       int min = std::numeric_limits<int>::max();
+      
       for (Module::iterator F = M.begin(); F != M.end(); ++F) {
         int numCFG = 0;
         for (Function::iterator BB = F->begin(); BB != F->end(); ++BB) {

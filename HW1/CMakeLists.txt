@@ -3,6 +3,7 @@ add_llvm_loadable_module( LLVM-HW1
   CFGEdges.cpp
   BBinLoops.cpp
   SingleEntryLoops.cpp
+  DominatorCounter.cpp
 
   DEPENDS
   intrinsics_gen

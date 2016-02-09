@@ -31,6 +31,7 @@ namespace {
       int maxSingEntryLoopFunc = 0;
       int totalSingEntryLoop = 0;
       int totalFunc = 0;
+      
       for (Module::iterator F = M.begin(); F != M.end(); ++F) {
         totalFunc++;
         if (F->size() != 0) {

@@ -26,6 +26,7 @@ namespace {
       int minBasicBlocks = std::numeric_limits<int>::max();
       int totalBasicBlocks = 0;
       float avgBasicBlocks = 0;
+      
       for (Module::iterator F = M.begin(), E = M.end(); F != E; ++F) {
         int numBlocks = F->size();
         totalBasicBlocks += numBlocks;
