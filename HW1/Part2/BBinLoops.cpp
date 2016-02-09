@@ -32,8 +32,8 @@ namespace {
       int totalFunc = 0;
       
       for (Module::iterator F = M.begin(); F != M.end(); ++F) {
-        totalFunc++;
         if (F->size() != 0) {
+          totalFunc++;
           int BBinLoopsThisFunction = 0;
           LoopInfo &loopInfo = getAnalysis<LoopInfoWrapperPass>(*F).getLoopInfo();
           for (Function::iterator bBlock = F->begin(); bBlock != F->end(); ++bBlock) {

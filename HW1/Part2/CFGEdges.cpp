@@ -26,29 +26,33 @@ namespace {
       int numTotalCFG = 0;
       int max = 0;
       int min = std::numeric_limits<int>::max();
+      int totalFunc = 0;
       
       for (Module::iterator F = M.begin(); F != M.end(); ++F) {
-        int numCFG = 0;
-        for (Function::iterator BB = F->begin(); BB != F->end(); ++BB) {
-          //Find terminator instruction and count successors
-          TerminatorInst* termInst =  static_cast<TerminatorInst*>(BB->getTerminator());
-          numCFG += termInst->getNumSuccessors();
+        if (F->size() != 0) {
+          totalFunc++;
+          int numCFG = 0;
+          for (Function::iterator BB = F->begin(); BB != F->end(); ++BB) {
+            //Find terminator instruction and count successors
+            TerminatorInst* termInst =  static_cast<TerminatorInst*>(BB->getTerminator());
+            numCFG += termInst->getNumSuccessors();
+          }
+          // Do computation for this function
+          numTotalCFG += numCFG;
+          if (max < numCFG)
+            max = numCFG;
+          if (min > numCFG)
+            min = numCFG;
         }
-        // Do computation for this function
-        numTotalCFG += numCFG;
-        if (max < numCFG)
-          max = numCFG;
-        if (min > numCFG)
-          min = numCFG;
       }
 
-      double averageCFG = numTotalCFG / (float)(M.size());
+      double averageCFG = numTotalCFG / (float)(totalFunc);
       errs() << "CFG Edges:\n";
       errs() << "Min #CFG across functions: " << min << "\n";
       errs() << "Max #CFG across functions: " << max << "\n";
       errs() << "Avg #CFG across functions: " << averageCFG << "\n";
       errs() << "All #CFG across functions: " << numTotalCFG << "\n";
-      errs() << "All #functions: " << M.size() << "\n";
+      errs() << "All #functions: " << totalFunc << "\n";
       errs() << "\n";
 
       return false;

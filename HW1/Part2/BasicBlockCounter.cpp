@@ -26,23 +26,27 @@ namespace {
       int minBasicBlocks = std::numeric_limits<int>::max();
       int totalBasicBlocks = 0;
       float avgBasicBlocks = 0;
+      int totalFunc = 0;
       
       for (Module::iterator F = M.begin(), E = M.end(); F != E; ++F) {
-        int numBlocks = F->size();
-        totalBasicBlocks += numBlocks;
-        if (maxBasicBlocks < numBlocks)
-          maxBasicBlocks = numBlocks;
-        if (minBasicBlocks > numBlocks)
-          minBasicBlocks = numBlocks;
+        if (F->size() != 0) {
+          totalFunc++;
+          int numBlocks = F->size();
+          totalBasicBlocks += numBlocks;
+          if (maxBasicBlocks < numBlocks)
+            maxBasicBlocks = numBlocks;
+          if (minBasicBlocks > numBlocks)
+            minBasicBlocks = numBlocks;
+        }
       }
-      avgBasicBlocks = totalBasicBlocks / (float)(M.size());
 
+      avgBasicBlocks = totalBasicBlocks / (float)(totalFunc);
       errs() << "Basic Blocks:\n";
       errs() << "Min #Blocks across functions: " << minBasicBlocks << "\n";
       errs() << "Max #Blocks across functions: " << maxBasicBlocks << "\n";
       errs() << "Avg #Blocks across functions: " << avgBasicBlocks << "\n";
       errs() << "All #Blocks across functions: " << totalBasicBlocks << "\n";
-      errs() << "All #functions: " << M.size() << "\n";
+      errs() << "All #functions: " << totalFunc << "\n";
       errs() << "\n";
 
     return false;
