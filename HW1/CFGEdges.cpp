@@ -13,6 +13,10 @@
 
 using namespace llvm;
 
+/**
+ * Count all CFG edges
+ * For each BB, count its successor BBs
+ */
 namespace {
   struct CFGEdges: public ModulePass {
     static char ID;
@@ -38,9 +42,13 @@ namespace {
       }
 
       double averageCFG = numTotalCFG / (float)(M.size());
+      errs() << "CFG Edges:\n";
       errs() << "Min #CFG across functions: " << min << "\n";
       errs() << "Max #CFG across functions: " << max << "\n";
       errs() << "Avg #CFG across functions: " << averageCFG << "\n";
+      errs() << "All #CFG across functions: " << numTotalCFG << "\n";
+      errs() << "All #functions: " << M.size() << "\n";
+      errs() << "\n";
 
       return false;
     }

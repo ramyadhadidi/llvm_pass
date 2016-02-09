@@ -13,6 +13,9 @@
 
 using namespace llvm;
 
+/**
+ * Count BB
+ */
 namespace {
   struct BasicBlockCounter: public ModulePass {
     static char ID;
@@ -32,9 +35,14 @@ namespace {
           minBasicBlocks = numBlocks;
       }
       avgBasicBlocks = totalBasicBlocks / (float)(M.size());
+
+      errs() << "Basic Blocks:\n";
       errs() << "Min #Blocks across functions: " << minBasicBlocks << "\n";
       errs() << "Max #Blocks across functions: " << maxBasicBlocks << "\n";
       errs() << "Avg #Blocks across functions: " << avgBasicBlocks << "\n";
+      errs() << "All #Blocks across functions: " << totalBasicBlocks << "\n";
+      errs() << "All #functions: " << M.size() << "\n";
+      errs() << "\n";
 
     return false;
     }
