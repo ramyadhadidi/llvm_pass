@@ -1,6 +1,0 @@
-add_llvm_loadable_module( LLVM-HW1-P4
-  Reachable.cpp
-
-  DEPENDS
-  intrinsics_gen
-  )
