@@ -23,7 +23,6 @@ using namespace std;
 #define DEBUG_PRINT(x) errs() << x << "\n"
 #else
 #define DEBUG_PRINT(x) do {} while (0);
-
 #endif
 
 /**
@@ -131,6 +130,7 @@ namespace {
           }
 
       // we should have 2 of each pair
+      // we would remove permutation
       if (loops.size() % 2) {
         errs() << "ERR: Pair insertion error\n";
         return false;
@@ -145,7 +145,6 @@ namespace {
     }
 
     void getAnalysisUsage(AnalysisUsage &AU) const {
-      AU.addRequired<LoopInfoWrapperPass>();
     }
 
   };

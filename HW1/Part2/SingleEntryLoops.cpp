@@ -35,9 +35,9 @@ namespace {
           totalFunc++;
           int SingEntryLoopThisFunction = 0;
           LoopInfo &loopInfo = getAnalysis<LoopInfoWrapperPass>(*F).getLoopInfo();
-          for (Function::iterator bBlock = F->begin(); bBlock != F->end(); ++bBlock) {
-            if(loopInfo.getLoopFor(&*bBlock))
-              SingEntryLoopThisFunction += (loopInfo.getLoopFor(&*bBlock))->getNumBackEdges(); 
+          for (LoopInfo::iterator loopInfoIt = loopInfo.begin(); loopInfoIt != loopInfo.end(); ++loopInfoIt) {
+            Loop* L = *loopInfoIt;
+            SingEntryLoopThisFunction += L->getNumBackEdges(); 
           }
 
           totalSingEntryLoop += SingEntryLoopThisFunction;
