@@ -18,8 +18,6 @@ using namespace llvm;
 
 /**
  * Find all single entry loops by checking purely for back edges across functions
- * Iterate over All BB, look for successors. Then get the level, if the level is lower
- * than the current BB level,
  */
 namespace {
   struct SingleEntryLoops: public ModulePass {
@@ -38,12 +36,8 @@ namespace {
           int SingEntryLoopThisFunction = 0;
           LoopInfo &loopInfo = getAnalysis<LoopInfoWrapperPass>(*F).getLoopInfo();
           for (Function::iterator bBlock = F->begin(); bBlock != F->end(); ++bBlock) {
-            int curLevel = loopInfo.getLoopDepth(&*bBlock);
-            for (succ_iterator child = succ_begin(&*bBlock); child != succ_end(&*bBlock); ++child) {
-              int childLevel = loopInfo.getLoopDepth(*child);
-              if (curLevel > childLevel)
-                SingEntryLoopThisFunction++;
-            }
+            if(loopInfo.getLoopFor(&*bBlock))
+              SingEntryLoopThisFunction += (loopInfo.getLoopFor(&*bBlock))->getNumBackEdges(); 
           }
 
           totalSingEntryLoop += SingEntryLoopThisFunction;
