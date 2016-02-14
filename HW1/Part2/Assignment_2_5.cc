@@ -19,7 +19,7 @@
 using namespace llvm;
 
 /**
- * Count BB
+ * For each two block see if they dominate each other or not
  */
 namespace {
   struct DominatorCounter: public ModulePass {
@@ -27,7 +27,6 @@ namespace {
     DominatorCounter() : ModulePass(ID) {}
 
     bool runOnModule(Module &M) override {
-      int totalFunc = 0;
       int numTotalDominator = 0;
       int numTotalBB = 0;
       int minDominatorBBinFunc = std::numeric_limits<int>::max();
@@ -77,4 +76,4 @@ namespace {
 }
 
 char DominatorCounter::ID = 0;
-static RegisterPass<DominatorCounter> X("DominatorCounter", "Dominator Counter");
+static RegisterPass<DominatorCounter> X("Assignment_2_5", "Dominator Counter");

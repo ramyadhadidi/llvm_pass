@@ -70,4 +70,4 @@ namespace {
 }
 
 char SingleEntryLoops::ID = 0;
-static RegisterPass<SingleEntryLoops> X("SingleEntryLoops", "SingleEntryLoops Counter");
+static RegisterPass<SingleEntryLoops> X("Assignment_2_3", "SingleEntryLoops Counter");

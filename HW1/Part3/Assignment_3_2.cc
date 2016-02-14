@@ -151,4 +151,4 @@ namespace {
 }
 
 char warshalLoop::ID = 0;
-static RegisterPass<warshalLoop> X("warshalLoop", "WarshalLoop Counter");
+static RegisterPass<warshalLoop> X("Assignment_3_2", "WarshalLoop Counter");

@@ -75,4 +75,4 @@ namespace {
 }
 
 char BBinLoops::ID = 0;
-static RegisterPass<BBinLoops> X("BBinLoops", "BBinLoops Counter", false, false);
+static RegisterPass<BBinLoops> X("Assignment_2_4", "BBinLoops Counter", false, false);

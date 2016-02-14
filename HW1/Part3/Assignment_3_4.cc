@@ -108,6 +108,9 @@ namespace {
     return false;
     }
 
+    /**
+     * Recursive reachable function based on visited BBs and succ_iteration
+     */
     bool isReachable(BasicBlock *src, BasicBlock *dest, set<BasicBlock*> &visited) {
       if(src == dest)
         return true;
@@ -132,76 +135,4 @@ namespace {
 
 
 char Reachable::ID = 0;
-static RegisterPass<Reachable> X("Reachable", "Reachable Function");
-
-/**
-
-namespace {
-    
-    struct p34 : public FunctionPass {
-        // Pass identification, replacement for typeid
-        static char ID;
-                int funcnum;
-                my_dstats* timestats =new my_dstats;
-        p34() : FunctionPass(ID) {srand (time(NULL));
-                funcnum=0;
-                }
-
-    virtual ~p34(){
-            if (funcnum!=0){
-        errs() << "\nMax time through all functions:           " << timestats->max;
-                errs() << "\nMin time through all functions:           " << timestats->min;
-                errs() << "\nAverage time through all functions:       " << timestats->total/funcnum;
-        
-        
-                errs() << "\n";
-            }
-            else{
-                errs()<<"no function to test reachability!\n";
-            }
-            }
-        //Run for each function
-        virtual bool runOnFunction(Function &F){
-                    funcnum++;
-const Function::BasicBlockListType &BBs = F.getBasicBlockList();
-Function::iterator src;
-Function::iterator dst;
-int nBB=0;
-Function::iterator bi=F.begin();
-int randn;
-srand (time(NULL));
-Function::iterator be;
-
-for (Function::iterator bi=F.begin(), be = F.end(); bi != be; bi++) {
-nBB++;
-}
-errs()<<F.getName()<<"\t"<<"nbb:\t"<<nBB<<"\n";
-    clock_t start;
-    double duration;
-start = clock();
-for(int i=0;i<1000000;i++){
- src=F.begin();
- dst=F.begin();
- 
- randn = rand() % nBB ;
-// errs()<<"src:\t"<<randn<<"\n";
- for(int j=0;j<randn;j++)src++;
- //srand (time(NULL));
- randn = rand() % nBB ;
- for(int j=0;j<randn;j++)dst++;
-//errs()<<"dst:\t"<<randn<<"\n";
-//if(src==dst)continue;
- 
-SmallPtrSet<const BasicBlock*, 1000> Visited;
-//if (isReachable(src,dst,Visited))
-   // errs()<<src->getName()<<"\treached\t"<<dst->getName()<<"    \n";
-//else 
-   // errs()<<src->getName()<<"\tdidn't reach\t"<<dst->getName()<<"    \n";
-}
-duration = ( clock() - start ) / (double) CLOCKS_PER_SEC;
-timestats->add(duration);
-        }
-
-
-
-*/
+static RegisterPass<Reachable> X("Assignment_3_4", "Reachable Function");

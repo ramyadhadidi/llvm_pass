@@ -62,4 +62,4 @@ namespace {
 }
 
 char CFGEdges::ID = 0;
-static RegisterPass<CFGEdges> X("CFGEdges", "CFG Edges Counter");
+static RegisterPass<CFGEdges> X("Assignment_2_2", "CFG Edges Counter");

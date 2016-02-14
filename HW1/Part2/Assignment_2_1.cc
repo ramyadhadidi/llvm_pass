@@ -56,4 +56,4 @@ namespace {
 }
 
 char BasicBlockCounter::ID = 0;
-static RegisterPass<BasicBlockCounter> X("BasicBlockCounter", "BasicBlockCounter Counter");
+static RegisterPass<BasicBlockCounter> X("Assignment_2_1", "BasicBlockCounter Counter");

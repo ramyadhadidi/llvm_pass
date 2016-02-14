@@ -11,6 +11,7 @@
 #include "llvm/Pass.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Analysis/LoopInfo.h"
+#include "llvm/ADT/SmallVector.h"
 #include <limits>
 
 using namespace llvm;
@@ -61,19 +62,21 @@ namespace {
           if (loopInfo.getLoopDepth(&*bBlock) == 1)
             numOuterLoopsFunc++;
         }
-
-        // Exit CFG from loop to non-in-loop BB
-        if (loopInfo.getLoopDepth(&*bBlock) != 0) {// This BB is in a loop
-          Loop* currLoop = loopInfo.getLoopFor(&*bBlock);
-          for (succ_iterator child = succ_begin(&*bBlock); child != succ_end(&*bBlock); ++child) { // go Through all successor of this BB
-            Loop* exitLoop = loopInfo.getLoopFor(*child);
-            if (currLoop != exitLoop) // if they are not in same loop and child depth is larger than this BB, then there is a exit CFG that is not inside BB's loop
-              if (loopInfo.getLoopDepth(&*bBlock) < loopInfo.getLoopDepth(*child))
-                numExitCFGFunc++;
-
-          }
-        }
       }
+
+      for (LoopInfo::iterator loopInfoIt = loopInfo.begin(); loopInfoIt != loopInfo.end(); ++loopInfoIt) {
+        Loop* L=*loopInfoIt;
+  
+        SmallVector<std::pair< const BasicBlock*, const BasicBlock*>, 100> exitEdges;
+        L->getExitEdges(exitEdges);
+        int size=0;
+        while(!exitEdges.empty()){
+          exitEdges.pop_back ();
+          size++;
+        }
+        numExitCFGFunc += size;
+      }
+
 
       stats.numLoops += numLoopsFunc;
       stats.numOuterLoops += numOuterLoopsFunc;
@@ -91,4 +94,4 @@ namespace {
 }
 
 char Loops::ID = 0;
-static RegisterPass<Loops> X("Loops", "Loop Info");
+static RegisterPass<Loops> X("Assignment_3_1", "Loop Info");

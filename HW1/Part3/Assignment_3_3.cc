@@ -19,7 +19,7 @@ using namespace std;
 
 /**
  * Control Dependent 
- * J is control dependent on I, if"
+ * J is control dependent on I, if
  *  1) J is not a Post-Dominator of I
  *  2) J Post-Dominate one of the successors of I, but not all of them (not all of them will be satisfied with condition 1) (
  *    Note: if J==succ(I) dominate() will return true as well)
@@ -63,4 +63,4 @@ namespace {
 }
 
 char controlDep::ID = 0;
-static RegisterPass<controlDep> X("ControlDep", "Control Dependence check");
+static RegisterPass<controlDep> X("Assignment_3_3", "Control Dependence check");
