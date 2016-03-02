@@ -13,6 +13,9 @@
 #include <limits>
 #include <map>
 #include <set>
+#include <string.h>
+#include <sstream>
+
 
 using namespace llvm;
 using namespace std;
@@ -33,6 +36,12 @@ namespace {
       map<BasicBlock*, set<BasicBlock*> > controlDepMap;
 
       PostDominatorTree &PDT = getAnalysis<PostDominatorTree>();
+      
+      int i = 0;
+      for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
+        bBlock->setName(to_string(i));
+        i++;
+      }
 
       for (Function::iterator ctrDepBlockIt = F.begin(); ctrDepBlockIt != F.end(); ctrDepBlockIt++)
         for (Function::iterator DepDomBlockIt = F.begin(); DepDomBlockIt != F.end(); DepDomBlockIt++)
@@ -47,7 +56,7 @@ namespace {
         continue;
       errs() << "*)BasicBlock '" << bBlock->getName() << "' is ContDep on:\n\t";
       for (set<BasicBlock*>::iterator itSet = controlDepMap[&*bBlock].begin(); itSet !=controlDepMap[&*bBlock].end(); itSet++)
-        errs() << "BasicBlock '" << (*itSet)->getName() << "', ";
+        errs() << (*itSet)->getName() << "', ";
       errs() << "\n\n";
     }
 
