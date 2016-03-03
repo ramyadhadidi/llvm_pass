@@ -63,47 +63,92 @@ using namespace std;
     WorkList.erase(WorkList.begin());
   }
  *
+ *
+ ** Users
+ *
+  for (Value::user_iterator UI = inst->user_begin(), UE = inst->user_end(); UI != UE; UI++) {
+    errs() << "1\n";
+    if (Instruction *I2 = dyn_cast<Instruction>(*UI)) {
+      string operandName = ((I2->getOperand(1))->getName()).str();
+      errs() << "AL" << getLine(I2) << "::" << I2->getOpcodeName() << " " << operandName << "\n";
+    }
+
+  }
+ *
  */
 
 namespace {
+  struct basicBlockData{
+    BasicBlock* bBlock;
+    set<string> definedValues;
+  };
+
   struct unsoundDef: public FunctionPass {
     static char ID;
-    set<string> unInitVarStr;
-    set<string> unUnsoundVarStr;
-    set<unsigned> unInitVarLine;
+    // Naive Implementation
+    set<string> unInitVarStrNaive;
+    set<string> unUnsoundVarStrNaive;
+    set<unsigned> unInitVarLineNaive;
+
+
     unsoundDef() : FunctionPass(ID) {}
 
     /*
      *
      */
     bool runOnFunction(Function &F) override {
-      unInitializedVar(F);
-      unSoundVar(F);
+      //unInitializedVarNaive(F);
+      //unSoundVar(F);
+
+      // Process in Each Basic Block
+      for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
+        set<string> defined;
+        for (BasicBlock::iterator iInst = bBlock->begin(); iInst != bBlock->end(); iInst++) {
+
+          if (StoreInst *inst = dyn_cast<StoreInst>(iInst)) {
+            string operandName =  ((inst->getPointerOperand())->getName()).str();
+            defined.insert(operandName);
+          }
+
+          if (LoadInst *inst = dyn_cast<LoadInst>(iInst)) {
+            string operandName = ((inst->getPointerOperand())->getName()).str();
+              if (defined.find(operandName) == defined.end()) {
+                errs() << "WARNING: '" << operandName << "' not initialized in " << getFunctionname(inst) \
+                  <<". (" << getFilename(iInst) << "::" << getLine(iInst) << ")\n";
+              }
+          }
+
+        }
+      }
+
+      //Now Lets Process across Basic Block
+
+
       
       return false;
     }
 
     /*
-     *
+     * Naive uninitialized variables
      */
-    void unInitializedVar(Function &F) {
+    void unInitializedVarNaive(Function &F) {
       std::set<string> defined;
       for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
         for (BasicBlock::iterator iInst = bBlock->begin(); iInst != bBlock->end(); iInst++) {
 
           if (StoreInst *inst = dyn_cast<StoreInst>(iInst)) {
-            string operandName = ((inst->getPointerOperand())->getName()).str();
-            //errs() << "L" << getLine(iInst) << "::" << iInst->getOpcodeName() << " " << operandName << "\n";
-            defined.insert(((inst->getPointerOperand())->getName()).str());
+            string operandName =  ((inst->getPointerOperand())->getName()).str();
+            errs() << "L" << getLine(iInst) << "::" << iInst->getOpcodeName() << " " << operandName << "\n";
+            defined.insert(operandName);
           }
           if (LoadInst *inst = dyn_cast<LoadInst>(iInst)) {
             string operandName = ((inst->getPointerOperand())->getName()).str();
-            //errs() << "L" << getLine(iInst) << "::" << iInst->getOpcodeName() << " " << operandName << "\n";
+            errs() << "L" << getLine(iInst) << "::" << iInst->getOpcodeName() << " " << operandName << "\n";
             if (defined.find(operandName) == defined.end()) {
               errs() << "WARNING: '" << operandName << "' not initialized. (" << \
                 getFilename(iInst) << "::" << getLine(iInst) << ")\n";
-              unInitVarStr.insert(operandName);
-              unInitVarLine.insert(getLine(iInst));
+              unInitVarStrNaive.insert(operandName);
+              unInitVarLineNaive.insert(getLine(iInst));
             }
           }
 
@@ -112,7 +157,7 @@ namespace {
     }
 
     /*
-     *
+     * Naive unsound variables
      */
     void unSoundVar(Function &F) {
       bool change = false;
@@ -121,13 +166,13 @@ namespace {
         for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++)
           for (BasicBlock::iterator iInst = bBlock->begin(); iInst != bBlock->end(); iInst++) {
 
-            if (unInitVarLine.find(getLine(iInst)) != unInitVarLine.end()) {
+            if (unInitVarLineNaive.find(getLine(iInst)) != unInitVarLineNaive.end()) {
               if (StoreInst *inst = dyn_cast<StoreInst>(iInst)) {
                 //errs() << "L" << getLine(iInst) << "::" << iInst->getOpcodeName() << " \n";
                 string operandName = ((inst->getPointerOperand())->getName()).str();
-                if (unInitVarStr.find(operandName) == unInitVarStr.end()) {
-                  unInitVarStr.insert(operandName);
-                  unUnsoundVarStr.insert(operandName);
+                if (unInitVarStrNaive.find(operandName) == unInitVarStrNaive.end()) {
+                  unInitVarStrNaive.insert(operandName);
+                  unUnsoundVarStrNaive.insert(operandName);
                   change = true;
                   errs() << "WARNING: '" << operandName << "' unsound. (" << \
                     getFilename(iInst) << "::" << getLine(iInst) << ")\n";
@@ -164,6 +209,21 @@ namespace {
         return Loc->getFilename();
       else 
         return "";
+    }
+
+    /*
+     *
+     */
+    string getFunctionname(BasicBlock::iterator iInst) {
+      Function* func = iInst->getFunction();
+      string name = (func->getName()).str();
+      return name;
+    }
+
+    string getFunctionname(Instruction* iInst) {
+      Function* func = iInst->getFunction();
+      string name = (func->getName()).str();
+      return name;
     }
 
   };
