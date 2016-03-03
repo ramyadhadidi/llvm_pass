@@ -50,12 +50,27 @@ using namespace std;
   (inst->getPointerOperand())->getName()).str()
  *
  *
+ ** Worklist processing
+ *
+  set<Instruction*> WorkList;
+  for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++)
+    for (BasicBlock::iterator iInst = bBlock->begin(); iInst != bBlock->end(); iInst++) {
+      WorkList.insert(&*iInst);
+    }
+
+  while (!WorkList.empty()) {
+    Instruction *iInst = *WorkList.begin();
+    WorkList.erase(WorkList.begin());
+  }
+ *
  */
 
 namespace {
   struct unsoundDef: public FunctionPass {
     static char ID;
-    std::set<string> unInitStr;
+    set<string> unInitVarStr;
+    set<string> unUnsoundVarStr;
+    set<unsigned> unInitVarLine;
     unsoundDef() : FunctionPass(ID) {}
 
     /*
@@ -63,7 +78,8 @@ namespace {
      */
     bool runOnFunction(Function &F) override {
       unInitializedVar(F);
-
+      unSoundVar(F);
+      
       return false;
     }
 
@@ -77,16 +93,18 @@ namespace {
 
           if (StoreInst *inst = dyn_cast<StoreInst>(iInst)) {
             string operandName = ((inst->getPointerOperand())->getName()).str();
-            //errs() << "L" << getLine(iInst) << "::" << iInst->getOpcodeName() << " " << operandName << "\n"; 
+            //errs() << "L" << getLine(iInst) << "::" << iInst->getOpcodeName() << " " << operandName << "\n";
             defined.insert(((inst->getPointerOperand())->getName()).str());
           }
           if (LoadInst *inst = dyn_cast<LoadInst>(iInst)) {
             string operandName = ((inst->getPointerOperand())->getName()).str();
             //errs() << "L" << getLine(iInst) << "::" << iInst->getOpcodeName() << " " << operandName << "\n";
-            if (defined.find(operandName) == defined.end())
+            if (defined.find(operandName) == defined.end()) {
               errs() << "WARNING: '" << operandName << "' not initialized. (" << \
                 getFilename(iInst) << "::" << getLine(iInst) << ")\n";
-              unInitStr.insert(operandName);
+              unInitVarStr.insert(operandName);
+              unInitVarLine.insert(getLine(iInst));
+            }
           }
 
         } 
@@ -96,7 +114,42 @@ namespace {
     /*
      *
      */
+    void unSoundVar(Function &F) {
+      bool change = false;
+      do {
+        change = false;
+        for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++)
+          for (BasicBlock::iterator iInst = bBlock->begin(); iInst != bBlock->end(); iInst++) {
+
+            if (unInitVarLine.find(getLine(iInst)) != unInitVarLine.end()) {
+              if (StoreInst *inst = dyn_cast<StoreInst>(iInst)) {
+                //errs() << "L" << getLine(iInst) << "::" << iInst->getOpcodeName() << " \n";
+                string operandName = ((inst->getPointerOperand())->getName()).str();
+                if (unInitVarStr.find(operandName) == unInitVarStr.end()) {
+                  unInitVarStr.insert(operandName);
+                  unUnsoundVarStr.insert(operandName);
+                  change = true;
+                  errs() << "WARNING: '" << operandName << "' unsound. (" << \
+                    getFilename(iInst) << "::" << getLine(iInst) << ")\n";
+                }
+              }
+            }
+
+          }
+      } while(change);
+    }
+
+    /*
+     *
+     */
     unsigned getLine(BasicBlock::iterator iInst) {
+      if (DILocation *Loc = iInst->getDebugLoc())
+        return Loc->getLine();
+      else 
+        return 0;
+    }
+
+    unsigned getLine(Instruction* iInst) {
       if (DILocation *Loc = iInst->getDebugLoc())
         return Loc->getLine();
       else 
