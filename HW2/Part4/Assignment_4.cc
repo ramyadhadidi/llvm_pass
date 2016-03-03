@@ -13,6 +13,7 @@
 #include "llvm/IR/Metadata.h"
 
 #include <set>
+#include <map>
 #include <string.h>
 #include <sstream>
 
@@ -78,11 +79,27 @@ using namespace std;
  */
 
 namespace {
+  /*
+   *
+   */
   struct basicBlockData{
-    BasicBlock* bBlock;
     set<string> definedValues;
+    set<string> usedValues;
+
+    //
+    void printBasicBlockData() {
+      errs() << "Defined Values:\n";
+      for (set<string>::iterator it=definedValues.begin(); it!=definedValues.end(); ++it) 
+        errs() << *it << "\t";
+      errs() << "\nUsed Values:\n";
+      for (set<string>::iterator it=usedValues.begin(); it!=usedValues.end(); ++it)
+        errs() << *it << "\t";
+      errs() << "\n\n";
+    }
   };
 
+
+  /*========================================================*/
   struct unsoundDef: public FunctionPass {
     static char ID;
     // Naive Implementation
@@ -98,16 +115,21 @@ namespace {
      */
     bool runOnFunction(Function &F) override {
       //unInitializedVarNaive(F);
-      //unSoundVar(F);
+      //unSoundVarNaive(F);
 
-      // Process in Each Basic Block
+      map<BasicBlock*, basicBlockData*> bbMap;
+      // Process uninitialized variables in Each Basic Block 
+      //  & update basicBlockData for across block processing
       for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
         set<string> defined;
+        bbMap[&*bBlock] = new basicBlockData;
         for (BasicBlock::iterator iInst = bBlock->begin(); iInst != bBlock->end(); iInst++) {
 
           if (StoreInst *inst = dyn_cast<StoreInst>(iInst)) {
             string operandName =  ((inst->getPointerOperand())->getName()).str();
             defined.insert(operandName);
+
+            (bbMap[&*bBlock]->definedValues).insert(operandName);
           }
 
           if (LoadInst *inst = dyn_cast<LoadInst>(iInst)) {
@@ -116,13 +138,49 @@ namespace {
                 errs() << "WARNING: '" << operandName << "' not initialized in " << getFunctionname(inst) \
                   <<". (" << getFilename(iInst) << "::" << getLine(iInst) << ")\n";
               }
+
+            (bbMap[&*bBlock]->usedValues).insert(operandName);
           }
 
         }
       }
 
-      //Now Lets Process across Basic Block
+      // Now Lets Process across Basic Blocks 
+      //  & and find if a variable initialization is true for all paths
+      bool change = false;
+      do {
+        change = false;
+        // For each BB process its predecessors 
+        //  & import intersections of their defined variables to the BB
+        for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
+          map<string, int> intersectionInVar;
+          unsigned numPred=0;
+          for (pred_iterator predIt = pred_begin(&*bBlock); predIt != pred_end(&*bBlock); predIt++) {
+            numPred++;
+            for (set<string>::iterator it=(bbMap[*predIt]->definedValues).begin(); it!=(bbMap[*predIt]->definedValues).end(); ++it) 
+              intersectionInVar[*it]+=1;
+          }
+          
+          //Now check if there are any reaching initialization (intersection)
+          for (map<string, int>::iterator it=intersectionInVar.begin(); it!=intersectionInVar.end(); ++it)
+            if (it->second == numPred) 
+              if ((bbMap[&*bBlock]->definedValues).find(it->first) == (bbMap[&*bBlock]->definedValues).end()) {
+                (bbMap[&*bBlock]->definedValues).insert(it->first);
+                // If there is change in Defined values we need to process all basic blocks again(not optimized way)
+                change = true;
+              }
+         
+        }
+      } while(change);
+      
 
+      // Debug Print
+      /*
+      for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
+        errs() << "BB:\n";
+        bbMap[&*bBlock]->printBasicBlockData();
+      }
+      */
 
       
       return false;
@@ -159,7 +217,7 @@ namespace {
     /*
      * Naive unsound variables
      */
-    void unSoundVar(Function &F) {
+    void unSoundVarNaive(Function &F) {
       bool change = false;
       do {
         change = false;
@@ -183,6 +241,7 @@ namespace {
           }
       } while(change);
     }
+
 
     /*
      *
