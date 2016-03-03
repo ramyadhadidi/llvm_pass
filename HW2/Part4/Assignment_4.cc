@@ -44,31 +44,73 @@ using namespace std;
   BasicBlock::iterator iInst
   errs() << iInst->getOpcodeName() << "\n";
  *
+ *
+ ** Getting Name of Variable in a Instruction
+ *
+  (inst->getPointerOperand())->getName()).str()
+ *
+ *
  */
 
 namespace {
   struct unsoundDef: public FunctionPass {
     static char ID;
+    std::set<string> unInitStr;
     unsoundDef() : FunctionPass(ID) {}
 
+    /*
+     *
+     */
     bool runOnFunction(Function &F) override {
-      std::set<Value*> allocated;
-      std::set<Value*> defined;
-      for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
-        for (BasicBlock::iterator iInst = bBlock->begin(); iInst != bBlock->end(); iInst++) {
-          if (AllocaInst *inst = dyn_cast<AllocaInst>(iInst)) {
-            errs() << iInst->getOpcodeName() << "\n";
-          }
-          if (StoreInst *inst = dyn_cast<StoreInst>(iInst)) {
-            errs() << iInst->getOpcodeName() << "\n"; 
-          }
-          if (LoadInst *inst = dyn_cast<LoadInst>(iInst)) {
-            errs() << iInst->getOpcodeName() << "\n"; 
-          }
-        } 
-      }
+      unInitializedVar(F);
 
       return false;
+    }
+
+    /*
+     *
+     */
+    void unInitializedVar(Function &F) {
+      std::set<string> defined;
+      for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
+        for (BasicBlock::iterator iInst = bBlock->begin(); iInst != bBlock->end(); iInst++) {
+
+          if (StoreInst *inst = dyn_cast<StoreInst>(iInst)) {
+            string operandName = ((inst->getPointerOperand())->getName()).str();
+            //errs() << "L" << getLine(iInst) << "::" << iInst->getOpcodeName() << " " << operandName << "\n"; 
+            defined.insert(((inst->getPointerOperand())->getName()).str());
+          }
+          if (LoadInst *inst = dyn_cast<LoadInst>(iInst)) {
+            string operandName = ((inst->getPointerOperand())->getName()).str();
+            //errs() << "L" << getLine(iInst) << "::" << iInst->getOpcodeName() << " " << operandName << "\n";
+            if (defined.find(operandName) == defined.end())
+              errs() << "WARNING: '" << operandName << "' not initialized. (" << \
+                getFilename(iInst) << "::" << getLine(iInst) << ")\n";
+              unInitStr.insert(operandName);
+          }
+
+        } 
+      }
+    }
+
+    /*
+     *
+     */
+    unsigned getLine(BasicBlock::iterator iInst) {
+      if (DILocation *Loc = iInst->getDebugLoc())
+        return Loc->getLine();
+      else 
+        return 0;
+    }
+
+    /*
+     *
+     */
+    string getFilename(BasicBlock::iterator iInst) {
+      if (DILocation *Loc = iInst->getDebugLoc())
+        return Loc->getFilename();
+      else 
+        return "";
     }
 
   };
