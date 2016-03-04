@@ -83,17 +83,17 @@ namespace {
    *
    */
   struct basicBlockData{
-    set<string> definedValues;
-    set<string> usedValues;
+    set<Value*> definedValues;
+    set<Value*> usedValues;
 
     //
     void printBasicBlockData() {
       errs() << "Defined Values:\n";
-      for (set<string>::iterator it=definedValues.begin(); it!=definedValues.end(); ++it) 
-        errs() << *it << "\t";
+      for (set<Value*>::iterator it=definedValues.begin(); it!=definedValues.end(); ++it) 
+        errs() << ((*it)->getName()).str() << "\t";
       errs() << "\nUsed Values:\n";
-      for (set<string>::iterator it=usedValues.begin(); it!=usedValues.end(); ++it)
-        errs() << *it << "\t";
+      for (set<Value*>::iterator it=usedValues.begin(); it!=usedValues.end(); ++it)
+        errs() << ((*it)->getName()).str() << "\t";
       errs() << "\n\n";
     }
   };
@@ -118,51 +118,49 @@ namespace {
       //unSoundVarNaive(F);
 
       map<BasicBlock*, basicBlockData*> bbMap;
-      // Process uninitialized variables in Each Basic Block 
-      //  & update basicBlockData for across block processing
+      // Update basicBlockData for across block processing
       for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
-        set<string> defined;
         bbMap[&*bBlock] = new basicBlockData;
         for (BasicBlock::iterator iInst = bBlock->begin(); iInst != bBlock->end(); iInst++) {
 
           if (StoreInst *inst = dyn_cast<StoreInst>(iInst)) {
             string operandName =  ((inst->getPointerOperand())->getName()).str();
-            defined.insert(operandName);
-
-            (bbMap[&*bBlock]->definedValues).insert(operandName);
+            (bbMap[&*bBlock]->definedValues).insert(inst->getPointerOperand());
           }
 
           if (LoadInst *inst = dyn_cast<LoadInst>(iInst)) {
             string operandName = ((inst->getPointerOperand())->getName()).str();
-              if (defined.find(operandName) == defined.end()) {
-                errs() << "WARNING: '" << operandName << "' not initialized in " << getFunctionname(inst) \
-                  <<". (" << getFilename(iInst) << "::" << getLine(iInst) << ")\n";
-              }
-
-            (bbMap[&*bBlock]->usedValues).insert(operandName);
+            (bbMap[&*bBlock]->usedValues).insert(inst->getPointerOperand());
           }
 
         }
       }
 
+      // Debug Print
+      for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
+        errs() << "A-BB:\n";
+        bbMap[&*bBlock]->printBasicBlockData();
+      }
+
+
       // Now Lets Process across Basic Blocks 
-      //  & and find if a variable initialization is true for all paths
+      //  & find if a variable initialization is true for all paths
       bool change = false;
       do {
         change = false;
         // For each BB process its predecessors 
         //  & import intersections of their defined variables to the BB
         for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
-          map<string, int> intersectionInVar;
+          map<Value*, int> intersectionInVar;
           unsigned numPred=0;
           for (pred_iterator predIt = pred_begin(&*bBlock); predIt != pred_end(&*bBlock); predIt++) {
             numPred++;
-            for (set<string>::iterator it=(bbMap[*predIt]->definedValues).begin(); it!=(bbMap[*predIt]->definedValues).end(); ++it) 
+            for (set<Value*>::iterator it=(bbMap[*predIt]->definedValues).begin(); it!=(bbMap[*predIt]->definedValues).end(); ++it) 
               intersectionInVar[*it]+=1;
           }
           
           //Now check if there are any reaching initialization (intersection)
-          for (map<string, int>::iterator it=intersectionInVar.begin(); it!=intersectionInVar.end(); ++it)
+          for (map<Value*, int>::iterator it=intersectionInVar.begin(); it!=intersectionInVar.end(); ++it)
             if (it->second == numPred) 
               if ((bbMap[&*bBlock]->definedValues).find(it->first) == (bbMap[&*bBlock]->definedValues).end()) {
                 (bbMap[&*bBlock]->definedValues).insert(it->first);
@@ -171,18 +169,22 @@ namespace {
               }
          
         }
+
       } while(change);
       
 
       // Debug Print
-      /*
       for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
-        errs() << "BB:\n";
+        errs() << "B-BB:\n";
         bbMap[&*bBlock]->printBasicBlockData();
       }
-      */
-
       
+
+
+      // Now lets check in every basic block if we have uninitialized values
+      // & Process uninitialized variables in Each Basic Block (inside BB order of instructions is important)
+      
+
       return false;
     }
 
