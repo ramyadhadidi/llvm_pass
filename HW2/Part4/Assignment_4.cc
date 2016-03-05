@@ -121,6 +121,9 @@ namespace {
       //unInitializedVarNaive(F);
       //unSoundVarNaive(F);
 
+      // Initialize gen and kill sets
+      //  gen: the values that are used
+      //  kill: the values that are killed
       map<BasicBlock*, basicBlockData*> bbMap;
       // Update basicBlockData for across block processing
       for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
@@ -149,28 +152,56 @@ namespace {
       */
 
 
-
-      bool change = false;
+      // Find all uninitialized and unsound variables
+      bool globalChange = false;
       do {
-        change = false;
-        for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
-          for (succ_iterator succIt = succ_begin(&*bBlock); succIt != succ_end(&*bBlock); succIt++) {
-            for (set<Value*>::iterator it=(bbMap[*succIt]->inValues).begin(); it!=(bbMap[*succIt]->inValues).end(); ++it) 
-              if ((bbMap[&*bBlock]->killValues).find(*it) == (bbMap[&*bBlock]->killValues).end()) 
+        globalChange = false;
+
+        // Process of uninitialized variables 
+        //  Based on written backward transfer function in homework documents
+        //  Note: This is not a optimized version
+        bool change = false;
+        do {
+          change = false;
+          for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
+            for (succ_iterator succIt = succ_begin(&*bBlock); succIt != succ_end(&*bBlock); succIt++) {
+              for (set<Value*>::iterator it=(bbMap[*succIt]->inValues).begin(); it!=(bbMap[*succIt]->inValues).end(); ++it) 
+                if ((bbMap[&*bBlock]->killValues).find(*it) == (bbMap[&*bBlock]->killValues).end()) 
+                  if ((bbMap[&*bBlock]->inValues).find(*it) == (bbMap[&*bBlock]->inValues).end()) {
+                    (bbMap[&*bBlock]->inValues).insert(*it);
+                    change = true;
+                  }
+            }
+            for (set<Value*>::iterator it=(bbMap[&*bBlock]->genValues).begin(); it!=(bbMap[&*bBlock]->genValues).end(); ++it) 
+              if ((bbMap[&*bBlock]->killValues).find(*it) == (bbMap[&*bBlock]->killValues).end())
                 if ((bbMap[&*bBlock]->inValues).find(*it) == (bbMap[&*bBlock]->inValues).end()) {
                   (bbMap[&*bBlock]->inValues).insert(*it);
                   change = true;
                 }
           }
-          for (set<Value*>::iterator it=(bbMap[&*bBlock]->genValues).begin(); it!=(bbMap[&*bBlock]->genValues).end(); ++it) 
-            if ((bbMap[&*bBlock]->killValues).find(*it) == (bbMap[&*bBlock]->killValues).end())
-              if ((bbMap[&*bBlock]->inValues).find(*it) == (bbMap[&*bBlock]->inValues).end()) {
-                (bbMap[&*bBlock]->inValues).insert(*it);
-                change = true;
-              }
-        }
 
-      } while(change);
+        } while(change);
+
+        // Process of unsound variable that is loaded from an uninitialized variable
+        //  if we found such a variable, we will do the whole analysis again
+        change = false;
+        do {
+          change = false;
+          set<Value*> &entryBlockDataInValue = bbMap[&(F.getEntryBlock())]->inValues;
+          for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) 
+            for (BasicBlock::iterator iInst = bBlock->begin(); iInst != bBlock->end(); iInst++) 
+              if (LoadInst *inst = dyn_cast<LoadInst>(iInst))
+                if (entryBlockDataInValue.find(inst->getPointerOperand()) != entryBlockDataInValue.end()) 
+                  for (Value::user_iterator ui = inst->user_begin(); ui != inst->user_end(); ui++)
+                    if (StoreInst *instStore = dyn_cast<StoreInst>(*ui)) 
+                      if (entryBlockDataInValue.find(instStore->getPointerOperand()) == entryBlockDataInValue.end()) {
+                        entryBlockDataInValue.insert(instStore->getPointerOperand());
+                        change = true;
+                        globalChange = true;
+                      }
+        } while(change);
+
+      }while(globalChange);
 
       /*
       // Now Lets Process across Basic Blocks 
