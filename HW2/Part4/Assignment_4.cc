@@ -192,13 +192,14 @@ namespace {
             for (BasicBlock::iterator iInst = bBlock->begin(); iInst != bBlock->end(); iInst++) 
               if (LoadInst *inst = dyn_cast<LoadInst>(iInst))
                 if (entryBlockDataInValue.find(inst->getPointerOperand()) != entryBlockDataInValue.end()) 
-                  for (Value::user_iterator ui = inst->user_begin(); ui != inst->user_end(); ui++)
-                    if (StoreInst *instStore = dyn_cast<StoreInst>(*ui)) 
-                      if (entryBlockDataInValue.find(instStore->getPointerOperand()) == entryBlockDataInValue.end()) {
-                        entryBlockDataInValue.insert(instStore->getPointerOperand());
-                        change = true;
-                        globalChange = true;
-                      }
+                  if((bbMap[&*bBlock]->inValues).find(inst->getPointerOperand()) != (bbMap[&*bBlock]->inValues).end())
+                    for (Value::user_iterator ui = inst->user_begin(); ui != inst->user_end(); ui++)
+                      if (StoreInst *instStore = dyn_cast<StoreInst>(*ui)) 
+                        if (entryBlockDataInValue.find(instStore->getPointerOperand()) == entryBlockDataInValue.end()) {
+                          entryBlockDataInValue.insert(instStore->getPointerOperand());
+                          change = true;
+                          globalChange = true;
+                        }
         } while(change);
 
       }while(globalChange);
