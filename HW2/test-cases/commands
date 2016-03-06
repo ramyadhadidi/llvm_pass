@@ -1,0 +1,4 @@
+clang -c -S case-* -emit-llvm
+clang -c case-* -emit-llvm
+
+opt -load ~/scratch/llvm/build/lib/LLVM-HW2-P4.so -Assignment_4 case-3.bc> /dev/null
