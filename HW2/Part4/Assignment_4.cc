@@ -188,10 +188,11 @@ namespace {
         do {
           change = false;
           set<Value*> &entryBlockDataInValue = bbMap[&(F.getEntryBlock())]->inValues;
-          for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) 
+          for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
+            set<Value*> &bBlockDataInValue = bbMap[&*bBlock]->inValues;
             for (BasicBlock::iterator iInst = bBlock->begin(); iInst != bBlock->end(); iInst++) 
               if (LoadInst *inst = dyn_cast<LoadInst>(iInst))
-                if (entryBlockDataInValue.find(inst->getPointerOperand()) != entryBlockDataInValue.end()) 
+                if (bBlockDataInValue.find(inst->getPointerOperand()) != bBlockDataInValue.end()) 
                   if((bbMap[&*bBlock]->inValues).find(inst->getPointerOperand()) != (bbMap[&*bBlock]->inValues).end())
                     for (Value::user_iterator ui = inst->user_begin(); ui != inst->user_end(); ui++)
                       if (StoreInst *instStore = dyn_cast<StoreInst>(*ui)) 
@@ -200,6 +201,7 @@ namespace {
                           change = true;
                           globalChange = true;
                         }
+          }
         } while(change);
 
       }while(globalChange);
