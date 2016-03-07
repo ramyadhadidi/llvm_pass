@@ -11,6 +11,8 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/Metadata.h"
+#include "llvm/Transforms/Utils/BasicBlockUtils.h"
+#include "llvm/IR/Constants.h"
 
 
 #include <limits>
@@ -31,17 +33,26 @@ namespace {
    *
    */
   struct basicBlockData{
-    set<Value*> genValues;    //Used Values
+    set<Value*> genValues;
     set<Value*> outValues;
+    map<Value*, set<uint64_t> > constantMap;
 
     //
     void printBasicBlockData() {
-      errs() << "\tGen Values:\n";
+      errs() << "\tGen Values:\n\t\t";
       for (set<Value*>::iterator it=genValues.begin(); it!=genValues.end(); ++it)
-        errs() << "\t" << ((*it)->getName()).str() << "\t";
-      errs() << "\n\tOut Values:\n";
+        errs() << ((*it)->getName()).str() << ", ";
+      errs() << "\n\tOut Values:\n\t\t";
       for (set<Value*>::iterator it=outValues.begin(); it!=outValues.end(); ++it)
-        errs() << "\t" << ((*it)->getName()).str() << "\t";
+        errs() << ((*it)->getName()).str() << ", ";
+      errs() << "\n\tConstantMap Values:\n";
+      for (map<Value*, set<uint64_t> >::iterator it=constantMap.begin(); it!=constantMap.end(); ++it) {
+        errs() << "\t\t" << (it->first)->getName().str() << ":: ";
+        for (set<uint64_t>::iterator itSet=(it->second).begin(); itSet!=(it->second).end(); ++itSet)
+          errs() << (*itSet) << ", ";
+        errs() << "\n";
+      } 
+
       errs() << "\n--------------------\n";
     }
   };
@@ -56,7 +67,7 @@ namespace {
 
       // Create reaching definitions
       map<BasicBlock*, basicBlockData*> bbMap;
-      createReachingDefinition(F ,bbMap);
+      createReachingDefinitionWithConstants(F ,bbMap);
       
       // Debug Print
       for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
@@ -64,12 +75,27 @@ namespace {
         bbMap[&*bBlock]->printBasicBlockData();
       }
 
+      for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) 
+        for (BasicBlock::iterator iInst = bBlock->begin(); iInst != bBlock->end(); iInst++)
+          if (StoreInst *inst = dyn_cast<StoreInst>(iInst)) {
+            string operandName = ((inst->getPointerOperand())->getName()).str();
+            errs() << "L" << getLine(iInst) << "::" << iInst->getOpcodeName() << " " << operandName << "\n";
+
+            Value *v = inst->getOperand(0);
+            if (ConstantInt* CI = dyn_cast<ConstantInt>(v)) {
+              errs() << "Yay\n";
+              errs() << CI->getLimitedValue() << "\n";
+            }
+
+            //ReplaceInstWithInst(inst->getParent()->getInstList(), iInst, new LoadInst((inst->getPointerOperand()), 0, "ptrToReplacedInt"));
+          }
 
 
-      return false;
+
+      return true;
     }
 
-    void createReachingDefinition(Function &F, map<BasicBlock*, basicBlockData*> &bbMap) {
+    void createReachingDefinitionWithConstants(Function &F, map<BasicBlock*, basicBlockData*> &bbMap) {
       // Create individual gen and out set
       for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
         bbMap[&*bBlock] = new basicBlockData;
@@ -77,24 +103,41 @@ namespace {
           if (StoreInst *inst = dyn_cast<StoreInst>(iInst)) {
             string operandName =  ((inst->getPointerOperand())->getName()).str();
             (bbMap[&*bBlock]->genValues).insert(inst->getPointerOperand());
+
+            // update constant map info if storing a constant value
+            Value *v = inst->getOperand(0);
+            if (ConstantInt* ConstInt = dyn_cast<ConstantInt>(v)) {
+              (bbMap[&*bBlock]->constantMap)[inst->getPointerOperand()].insert(ConstInt->getLimitedValue());
+            }
           }
           // There is no kill set, so out=gen
           bbMap[&*bBlock]->outValues = bbMap[&*bBlock]->genValues;
       }
 
-      // Walk of CFG and propagate definitions
+      // Walk through CFG and propagate definitions
       bool change = false;
       do {
         change = false;
         for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) 
-          for (pred_iterator predIt = pred_begin(&*bBlock); predIt != pred_end(&*bBlock); predIt++)
+          for (pred_iterator predIt = pred_begin(&*bBlock); predIt != pred_end(&*bBlock); predIt++) {
+            // Copy out values from predecessors to current block
             for (set<Value*>::iterator it=(bbMap[*predIt]->outValues).begin(); it!=(bbMap[*predIt]->outValues).end(); ++it) 
               if ((bbMap[&*bBlock]->outValues).find(*it)==(bbMap[&*bBlock]->outValues).end()) {
                 (bbMap[&*bBlock]->outValues).insert(*it);
                 change = true;
               }
+
+            // Copy constant map values from predecessors to current block
+            for (map<Value*, set<uint64_t> >::iterator it=(bbMap[*predIt]->constantMap).begin(); it!=(bbMap[*predIt]->constantMap).end(); ++it)
+              for (set<uint64_t>::iterator itSet=(it->second).begin(); itSet!=(it->second).end(); ++itSet)
+                if ((bbMap[&*bBlock]->constantMap)[it->first].find(*itSet) == (bbMap[&*bBlock]->constantMap)[it->first].end()) {
+                  (bbMap[&*bBlock]->constantMap)[it->first].insert(*itSet);
+                  change = true;
+                }
+
+          }
       } while(change);
-      
+
     }
 
 
