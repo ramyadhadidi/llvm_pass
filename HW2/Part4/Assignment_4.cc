@@ -90,7 +90,7 @@ namespace {
     //
     void printBasicBlockData() {
       errs() << "Kill Values:\n";
-      for (set<Value*>::iterator it=killValues.begin(); it!=killValues.end(); ++it) 
+      for (set<Value*>::iterator it=killValues.begin(); it!=killValues.end(); ++it)
         errs() << ((*it)->getName()).str() << "\t";
       errs() << "\nGen Values:\n";
       for (set<Value*>::iterator it=genValues.begin(); it!=genValues.end(); ++it)
@@ -157,7 +157,7 @@ namespace {
       do {
         globalChange = false;
 
-        // Process of uninitialized variables 
+        // Process of uninitialized variables
         //  Based on written backward transfer function in homework documents
         //  Note: This is not a optimized version
         bool change = false;
@@ -165,14 +165,14 @@ namespace {
           change = false;
           for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
             for (succ_iterator succIt = succ_begin(&*bBlock); succIt != succ_end(&*bBlock); succIt++) {
-              for (set<Value*>::iterator it=(bbMap[*succIt]->inValues).begin(); it!=(bbMap[*succIt]->inValues).end(); ++it) 
-                if ((bbMap[&*bBlock]->killValues).find(*it) == (bbMap[&*bBlock]->killValues).end()) 
+              for (set<Value*>::iterator it=(bbMap[*succIt]->inValues).begin(); it!=(bbMap[*succIt]->inValues).end(); ++it)
+                if ((bbMap[&*bBlock]->killValues).find(*it) == (bbMap[&*bBlock]->killValues).end())
                   if ((bbMap[&*bBlock]->inValues).find(*it) == (bbMap[&*bBlock]->inValues).end()) {
                     (bbMap[&*bBlock]->inValues).insert(*it);
                     change = true;
                   }
             }
-            for (set<Value*>::iterator it=(bbMap[&*bBlock]->genValues).begin(); it!=(bbMap[&*bBlock]->genValues).end(); ++it) 
+            for (set<Value*>::iterator it=(bbMap[&*bBlock]->genValues).begin(); it!=(bbMap[&*bBlock]->genValues).end(); ++it)
               if ((bbMap[&*bBlock]->killValues).find(*it) == (bbMap[&*bBlock]->killValues).end())
                 if ((bbMap[&*bBlock]->inValues).find(*it) == (bbMap[&*bBlock]->inValues).end()) {
                   (bbMap[&*bBlock]->inValues).insert(*it);
@@ -190,12 +190,12 @@ namespace {
           set<Value*> &entryBlockDataInValue = bbMap[&(F.getEntryBlock())]->inValues;
           for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
             set<Value*> &bBlockDataInValue = bbMap[&*bBlock]->inValues;
-            for (BasicBlock::iterator iInst = bBlock->begin(); iInst != bBlock->end(); iInst++) 
+            for (BasicBlock::iterator iInst = bBlock->begin(); iInst != bBlock->end(); iInst++)
               if (LoadInst *inst = dyn_cast<LoadInst>(iInst))
-                if (bBlockDataInValue.find(inst->getPointerOperand()) != bBlockDataInValue.end()) 
+                if (bBlockDataInValue.find(inst->getPointerOperand()) != bBlockDataInValue.end())
                   if((bbMap[&*bBlock]->inValues).find(inst->getPointerOperand()) != (bbMap[&*bBlock]->inValues).end())
                     for (Value::user_iterator ui = inst->user_begin(); ui != inst->user_end(); ui++)
-                      if (StoreInst *instStore = dyn_cast<StoreInst>(*ui)) 
+                      if (StoreInst *instStore = dyn_cast<StoreInst>(*ui))
                         if (entryBlockDataInValue.find(instStore->getPointerOperand()) == entryBlockDataInValue.end()) {
                           entryBlockDataInValue.insert(instStore->getPointerOperand());
                           change = true;
@@ -207,12 +207,12 @@ namespace {
       }while(globalChange);
 
       /*
-      // Now Lets Process across Basic Blocks 
+      // Now Lets Process across Basic Blocks
       //  & find if a variable initialization is true for all paths
       bool change = false;
       do {
         change = false;
-        // For each BB process its predecessors 
+        // For each BB process its predecessors
         //  & import intersections of their defined variables to the BB
         for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
           map<Value*, int> intersectionInVar;
@@ -220,19 +220,19 @@ namespace {
           for (pred_iterator predIt = pred_begin(&*bBlock); predIt != pred_end(&*bBlock); predIt++) {
             numPred++;
             errs() << bBlock->getName() <<  ":" << (*predIt)->getName() << ":\n";
-            for (set<Value*>::iterator it=(bbMap[*predIt]->definedValues).begin(); it!=(bbMap[*predIt]->definedValues).end(); ++it) 
+            for (set<Value*>::iterator it=(bbMap[*predIt]->definedValues).begin(); it!=(bbMap[*predIt]->definedValues).end(); ++it)
               intersectionInVar[*it]+=1;
           }
-          
+
           //Now check if there are any reaching initialization (intersection)
           for (map<Value*, int>::iterator it=intersectionInVar.begin(); it!=intersectionInVar.end(); ++it)
-            if (it->second == numPred) 
+            if (it->second == numPred)
               if ((bbMap[&*bBlock]->definedValues).find(it->first) == (bbMap[&*bBlock]->definedValues).end()) {
                 (bbMap[&*bBlock]->definedValues).insert(it->first);
                 // If there is change in Defined values we need to process all basic blocks again(not optimized way)
                 change = true;
               }
-         
+
         }
 
       } while(change);
@@ -254,7 +254,7 @@ namespace {
 
 
       return false;
-    
+
     }
 
     /*
@@ -281,7 +281,7 @@ namespace {
             }
           }
 
-        } 
+        }
       }
     }
 
@@ -320,14 +320,14 @@ namespace {
     unsigned getLine(BasicBlock::iterator iInst) {
       if (DILocation *Loc = iInst->getDebugLoc())
         return Loc->getLine();
-      else 
+      else
         return 0;
     }
 
     unsigned getLine(Instruction* iInst) {
       if (DILocation *Loc = iInst->getDebugLoc())
         return Loc->getLine();
-      else 
+      else
         return 0;
     }
 
@@ -337,7 +337,7 @@ namespace {
     string getFilename(BasicBlock::iterator iInst) {
       if (DILocation *Loc = iInst->getDebugLoc())
         return Loc->getFilename();
-      else 
+      else
         return "";
     }
 
