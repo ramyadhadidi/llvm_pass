@@ -35,7 +35,7 @@ namespace {
   struct basicBlockData{
     set<Value*> genValues;
     set<Value*> outValues;
-    map<Value*, set<uint64_t> > constantMap;
+    map<Value*, set<Value*> > valueMap;
 
     //
     void printBasicBlockData() {
@@ -46,14 +46,14 @@ namespace {
       for (set<Value*>::iterator it=outValues.begin(); it!=outValues.end(); ++it)
         errs() << ((*it)->getName()).str() << ", ";
       errs() << "\n\tConstantMap Values:\n";
-      for (map<Value*, set<uint64_t> >::iterator it=constantMap.begin(); it!=constantMap.end(); ++it) {
+      for (map<Value*, set<Value*> >::iterator it=valueMap.begin(); it!=valueMap.end(); ++it) {
         errs() << "\t\t" << (it->first)->getName().str() << ":: ";
-        for (set<uint64_t>::iterator itSet=(it->second).begin(); itSet!=(it->second).end(); ++itSet)
-          errs() << (*itSet) << ", ";
+        for (set<Value*>::iterator itSet=(it->second).begin(); itSet!=(it->second).end(); ++itSet)
+          errs() << "\n\t\t\t" <<*(*itSet);
         errs() << "\n";
       } 
 
-      errs() << "\n--------------------\n";
+      errs() << "END -------------------------\n";
     }
   };
 
@@ -69,14 +69,27 @@ namespace {
       map<BasicBlock*, basicBlockData*> bbMap;
       createReachingDefinitionWithConstants(F ,bbMap);
       
-      // Debug Print
+      // Debug Print for BB data
       for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
-        errs() << "BB " << bBlock->getName() << ":\n";
+        errs() << "BB Begin:" << bBlock->getName() << ":\n";
         bbMap[&*bBlock]->printBasicBlockData();
       }
 
+      // Replace Constants
+      replaceConstants(F ,bbMap);
+
+
+      //Replace
+      
+      /*
       for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) 
         for (BasicBlock::iterator iInst = bBlock->begin(); iInst != bBlock->end(); iInst++)
+          for(int oprandNum=0; oprandNum<(iInst->getNumOperands()); oprandNum++)
+            if ((bbMap[&*bBlock]->valueMap).find(iInst->getOperand(oprandNum)) !=  (bbMap[&*bBlock]->valueMap).end())
+              errs() << *iInst << "\n";
+      */
+
+          /*
           if (StoreInst *inst = dyn_cast<StoreInst>(iInst)) {
             string operandName = ((inst->getPointerOperand())->getName()).str();
             errs() << "L" << getLine(iInst) << "::" << iInst->getOpcodeName() << " " << operandName << "\n";
@@ -88,13 +101,37 @@ namespace {
             }
 
             //ReplaceInstWithInst(inst->getParent()->getInstList(), iInst, new LoadInst((inst->getPointerOperand()), 0, "ptrToReplacedInt"));
-          }
+          }*/
 
 
 
       return true;
     }
 
+
+    void replaceConstants(Function &F, map<BasicBlock*, basicBlockData*> &bbMap) {
+
+      for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) 
+        for (BasicBlock::iterator iInst = bBlock->begin(); iInst != bBlock->end(); iInst++)
+          for(unsigned int oprandNum=0; oprandNum<(iInst->getNumOperands()); oprandNum++) {
+            map<Value*, set<Value*> >::iterator itMap = (bbMap[&*bBlock]->valueMap).find(iInst->getOperand(oprandNum));
+            if (itMap !=  (bbMap[&*bBlock]->valueMap).end())
+              if ((itMap->second).size() == 1) {
+                Value *v = *((itMap->second).begin());
+                errs() << *v << "\n";
+              }
+          }
+
+
+        //for (map<Value*, set<Value*> >::iterator it= (bbMap[&*bBlock]->valueMap).begin(); it!=(bbMap[&*bBlock]->valueMap).end(); ++it)
+
+
+    }
+
+    /*========================================================*/
+    /*
+     *
+     */
     void createReachingDefinitionWithConstants(Function &F, map<BasicBlock*, basicBlockData*> &bbMap) {
       // Create individual gen and out set
       for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
@@ -103,12 +140,14 @@ namespace {
           if (StoreInst *inst = dyn_cast<StoreInst>(iInst)) {
             string operandName =  ((inst->getPointerOperand())->getName()).str();
             (bbMap[&*bBlock]->genValues).insert(inst->getPointerOperand());
+            // update value map, constant and others, so our pass can be safe
+            (bbMap[&*bBlock]->valueMap)[inst->getPointerOperand()].insert(inst->getOperand(0));
 
-            // update constant map info if storing a constant value
-            Value *v = inst->getOperand(0);
-            if (ConstantInt* ConstInt = dyn_cast<ConstantInt>(v)) {
-              (bbMap[&*bBlock]->constantMap)[inst->getPointerOperand()].insert(ConstInt->getLimitedValue());
-            }
+            // update value map info if storing a constant value
+            //Value *v = inst->getOperand(0);
+            //if (ConstantInt* ConstInt = dyn_cast<ConstantInt>(v)) {
+            //  
+            //}
           }
           // There is no kill set, so out=gen
           bbMap[&*bBlock]->outValues = bbMap[&*bBlock]->genValues;
@@ -127,11 +166,11 @@ namespace {
                 change = true;
               }
 
-            // Copy constant map values from predecessors to current block
-            for (map<Value*, set<uint64_t> >::iterator it=(bbMap[*predIt]->constantMap).begin(); it!=(bbMap[*predIt]->constantMap).end(); ++it)
-              for (set<uint64_t>::iterator itSet=(it->second).begin(); itSet!=(it->second).end(); ++itSet)
-                if ((bbMap[&*bBlock]->constantMap)[it->first].find(*itSet) == (bbMap[&*bBlock]->constantMap)[it->first].end()) {
-                  (bbMap[&*bBlock]->constantMap)[it->first].insert(*itSet);
+            // Copy value map values from predecessors to current block
+            for (map<Value*, set<Value*> >::iterator it=(bbMap[*predIt]->valueMap).begin(); it!=(bbMap[*predIt]->valueMap).end(); ++it)
+              for (set<Value*>::iterator itSet=(it->second).begin(); itSet!=(it->second).end(); ++itSet)
+                if ((bbMap[&*bBlock]->valueMap)[it->first].find(*itSet) == (bbMap[&*bBlock]->valueMap)[it->first].end()) {
+                  (bbMap[&*bBlock]->valueMap)[it->first].insert(*itSet);
                   change = true;
                 }
 
