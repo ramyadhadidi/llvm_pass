@@ -110,6 +110,8 @@ namespace {
     set<string> unInitVarStrNaive;
     set<string> unUnsoundVarStrNaive;
     set<unsigned> unInitVarLineNaive;
+    // Extra Info
+    map<Value*, string> valuesBB;
 
 
     unsoundDef() : FunctionPass(ID) {}
@@ -159,7 +161,7 @@ namespace {
 
         // Process of uninitialized variables
         //  Based on written backward transfer function in homework documents
-        //  Note: This is not a optimized version
+        //  Note: This is not a optimized implementation
         bool change = false;
         do {
           change = false;
@@ -170,6 +172,8 @@ namespace {
                   if ((bbMap[&*bBlock]->inValues).find(*it) == (bbMap[&*bBlock]->inValues).end()) {
                     (bbMap[&*bBlock]->inValues).insert(*it);
                     change = true;
+                    if (valuesBB.find(*it) == valuesBB.end())
+                      valuesBB.insert( pair<Value*, string>(*it, bBlock->getName()) );
                   }
             }
             for (set<Value*>::iterator it=(bbMap[&*bBlock]->genValues).begin(); it!=(bbMap[&*bBlock]->genValues).end(); ++it)
@@ -177,6 +181,8 @@ namespace {
                 if ((bbMap[&*bBlock]->inValues).find(*it) == (bbMap[&*bBlock]->inValues).end()) {
                   (bbMap[&*bBlock]->inValues).insert(*it);
                   change = true;
+                  if (valuesBB.find(*it) == valuesBB.end())
+                    valuesBB.insert( pair<Value*, string>(*it, bBlock->getName()) );
                 }
           }
 
@@ -200,6 +206,8 @@ namespace {
                           entryBlockDataInValue.insert(instStore->getPointerOperand());
                           change = true;
                           globalChange = true;
+                          if (valuesBB.find(instStore->getPointerOperand()) == valuesBB.end())
+                            valuesBB.insert( pair<Value*, string>(instStore->getPointerOperand(), bBlock->getName()) );
                         }
           }
         } while(change);
@@ -248,8 +256,9 @@ namespace {
 
       set<Value*> entryBlockDataInValue = bbMap[&(F.getEntryBlock())]->inValues;
       for (set<Value*>::iterator it=entryBlockDataInValue.begin(); it!=entryBlockDataInValue.end(); ++it) {
-        errs() << "WARNING: '" << (*it)->getName() << "' not initialized in function " \
-          << F.getName() << "\n";
+        errs() << "WARNING: '" << (*it)->getName() << "' not initialized in ";
+        errs() << "basic block " << valuesBB[*it] << " and ";
+        errs() << "function " << F.getName() << "\n";
       }
 
 
