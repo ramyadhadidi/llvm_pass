@@ -234,7 +234,7 @@ namespace {
         set<Value*> &bBlockDataInValue = bbMapInit[&*bBlock]->inValues;
         set<Value*> &bBlockDataGenValue = bbMapInit[&*bBlock]->genValues;
         set<Value*> &bBlockDataInValueEntry = bbMapInit[&(F.getEntryBlock())]->inValues;
-        errs() << bBlock->getName() << ":\n";
+        //errs() << bBlock->getName() << ":\n";
         for (set<Value*>::iterator it=bBlockDataInValue.begin(); it!=bBlockDataInValue.end(); ++it)
           //Entry block inValue is all correct
           if (bBlockDataInValueEntry.find(*it) != bBlockDataInValueEntry.end() )
@@ -247,7 +247,7 @@ namespace {
               // Save them for print
               unInitVariablesPrint[&*bBlock].insert(*it);
             }
-        errs() << "\n";
+        //errs() << "\n";
       }      
       // --------------------------------------------------------------------------------------------------------//
 
@@ -355,12 +355,14 @@ namespace {
       for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
         set<Value*> &bBlockDataSound = bbMapSound[&*bBlock]->outValues;
         set<Value*> &bBlockDataUninit = bbMapInit[&*bBlock]->outValues;
-        errs() << bBlock->getName() << ":\n";
-        for (set<Value*>::iterator it=bBlockDataUninit.begin(); it!=bBlockDataUninit.end(); ++it)
-              errs() << "WARNING: '" << (*it)->getName() << "' not initialized in Basic Block "<< bBlock->getName() << "\n";
-        for (set<Value*>::iterator it=bBlockDataSound.begin(); it!=bBlockDataSound.end(); ++it)
-              errs() << "WARNING: '" << (*it)->getName() << "' unsound in Basic Block "<< bBlock->getName() << "\n";
-        errs() << "\n";
+        if (bBlockDataSound.size() || bBlockDataUninit.size() ) {
+          errs() << bBlock->getName() << ":\n";
+          for (set<Value*>::iterator it=bBlockDataUninit.begin(); it!=bBlockDataUninit.end(); ++it)
+                errs() << "WARNING: '" << (*it)->getName() << "' not initialized in Basic Block "<< bBlock->getName() << "\n";
+          for (set<Value*>::iterator it=bBlockDataSound.begin(); it!=bBlockDataSound.end(); ++it)
+                errs() << "WARNING: '" << (*it)->getName() << "' unsound in Basic Block "<< bBlock->getName() << "\n";
+          errs() << "\n";
+        }
       }  
 
 
