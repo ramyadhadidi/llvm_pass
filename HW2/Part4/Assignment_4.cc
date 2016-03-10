@@ -82,7 +82,7 @@ namespace {
   /*
    *
    */
-  struct basicBlockData{
+  struct basicBlockDataUninit{
     set<Value*> killValues;   //Defined Values
     set<Value*> genValues;    //Used Values
     set<Value*> inValues;
@@ -116,6 +116,7 @@ namespace {
     set<unsigned> unInitVarLineNaive;
 
 
+
     unsoundDef() : FunctionPass(ID) {}
 
     /*
@@ -125,24 +126,27 @@ namespace {
       //unInitializedVarNaive(F);
       //unSoundVarNaive(F);
 
+
+      // ** Uninitialized Variables **
+      map <BasicBlock*, set<Value*>> unInitVariables;    //Final set to record them
       // Initialize gen and kill sets
       //  gen: the values that are used
       //  kill: the values that are killed
-      map<BasicBlock*, basicBlockData*> bbMap;
-      // Update basicBlockData for across block processing
+      map<BasicBlock*, basicBlockDataUninit*> bbMapInit;
+      // Update basicBlockDataUninit for across block processing
       for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
-        bbMap[&*bBlock] = new basicBlockData;
+        bbMapInit[&*bBlock] = new basicBlockDataUninit;
         for (BasicBlock::iterator iInst = bBlock->begin(); iInst != bBlock->end(); iInst++) {
 
           if (StoreInst *inst = dyn_cast<StoreInst>(iInst)) {
             string operandName =  ((inst->getPointerOperand())->getName()).str();
-            (bbMap[&*bBlock]->killValues).insert(inst->getPointerOperand());
+            (bbMapInit[&*bBlock]->killValues).insert(inst->getPointerOperand());
             //FIXME: Here we must process self store and remove them from killSet 
           }
 
           if (LoadInst *inst = dyn_cast<LoadInst>(iInst)) {
             string operandName = ((inst->getPointerOperand())->getName()).str();
-            (bbMap[&*bBlock]->genValues).insert(inst->getPointerOperand());
+            (bbMapInit[&*bBlock]->genValues).insert(inst->getPointerOperand());
           }
 
         }
@@ -152,72 +156,101 @@ namespace {
       // Debug Print
       for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
         errs() << "A-BB " << bBlock->getName() << ":\n";
-        bbMap[&*bBlock]->printBasicBlockData();
+        bbMapInit[&*bBlock]->printBasicBlockData();
       }
       */
 
 
-      // Find all uninitialized and unsound variables
-      bool globalChange = false;
+      // Process of uninitialized variables
+      //  Based on written backward transfer function in homework documents
+      //  Note: This is not a optimized version
+      int change = 1;
       do {
-        globalChange = false;
-
-        // Process of uninitialized variables
-        //  Based on written backward transfer function in homework documents
-        //  Note: This is not a optimized version
-        bool change = false;
-        do {
-          change = false;
-          for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
-            for (set<Value*>::iterator it=(bbMap[&*bBlock]->outValues).begin(); it!=(bbMap[&*bBlock]->outValues).end(); ++it)
-              if ((bbMap[&*bBlock]->killValues).find(*it) == (bbMap[&*bBlock]->killValues).end())
-                if ((bbMap[&*bBlock]->inValues).find(*it) == (bbMap[&*bBlock]->inValues).end()) {
-                  (bbMap[&*bBlock]->inValues).insert(*it);
-                  change = true;
+        for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
+          for (set<Value*>::iterator it=(bbMapInit[&*bBlock]->outValues).begin(); it!=(bbMapInit[&*bBlock]->outValues).end(); ++it)
+            if ((bbMapInit[&*bBlock]->killValues).find(*it) == (bbMapInit[&*bBlock]->killValues).end())
+              if ((bbMapInit[&*bBlock]->inValues).find(*it) == (bbMapInit[&*bBlock]->inValues).end()) {
+                (bbMapInit[&*bBlock]->inValues).insert(*it);
+                change = 1;
+              }
+          for (succ_iterator succIt = succ_begin(&*bBlock); succIt != succ_end(&*bBlock); succIt++) {
+            for (set<Value*>::iterator it=(bbMapInit[*succIt]->inValues).begin(); it!=(bbMapInit[*succIt]->inValues).end(); ++it)
+              if ((bbMapInit[&*bBlock]->killValues).find(*it) == (bbMapInit[&*bBlock]->killValues).end())
+                if ((bbMapInit[&*bBlock]->outValues).find(*it) == (bbMapInit[&*bBlock]->outValues).end()) {
+                  (bbMapInit[&*bBlock]->outValues).insert(*it);
+                  change = 1;
                 }
-            for (succ_iterator succIt = succ_begin(&*bBlock); succIt != succ_end(&*bBlock); succIt++) {
-              for (set<Value*>::iterator it=(bbMap[*succIt]->inValues).begin(); it!=(bbMap[*succIt]->inValues).end(); ++it)
-                if ((bbMap[&*bBlock]->killValues).find(*it) == (bbMap[&*bBlock]->killValues).end())
-                  if ((bbMap[&*bBlock]->outValues).find(*it) == (bbMap[&*bBlock]->outValues).end()) {
-                    (bbMap[&*bBlock]->outValues).insert(*it);
-                    change = true;
-                  }
+          }
+          for (succ_iterator succIt = succ_begin(&*bBlock); succIt != succ_end(&*bBlock); succIt++) {
+            for (set<Value*>::iterator it=(bbMapInit[*succIt]->inValues).begin(); it!=(bbMapInit[*succIt]->inValues).end(); ++it)
+              if ((bbMapInit[&*bBlock]->outValues).find(*it) == (bbMapInit[&*bBlock]->killValues).end()) {
+                (bbMapInit[*succIt]->inValues).erase(it);
+                change = 1;
+              }
+          }
+          for (set<Value*>::iterator it=(bbMapInit[&*bBlock]->genValues).begin(); it!=(bbMapInit[&*bBlock]->genValues).end(); ++it)
+            if ((bbMapInit[&*bBlock]->killValues).find(*it) == (bbMapInit[&*bBlock]->killValues).end())
+              if ((bbMapInit[&*bBlock]->outValues).find(*it) == (bbMapInit[&*bBlock]->outValues).end()) {
+                (bbMapInit[&*bBlock]->outValues).insert(*it);
+                change = 1;
+              }
+        }
+
+      } while(change--);
+
+
+      // Print unInitVariables variables
+      for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
+        set<Value*> &bBlockDataInValue = bbMapInit[&*bBlock]->inValues;
+        set<Value*> &bBlockDataGenValue = bbMapInit[&*bBlock]->genValues;
+        set<Value*> &bBlockDataInValueEntry = bbMapInit[&(F.getEntryBlock())]->inValues;
+        errs() << bBlock->getName() << ":\n";
+        for (set<Value*>::iterator it=bBlockDataInValue.begin(); it!=bBlockDataInValue.end(); ++it)
+          //Entry block inValue is all correct unsound variables (this is becomes in game when we include loops)
+          if (bBlockDataInValueEntry.find(*it) != bBlockDataInValueEntry.end() )
+            //Print if it is actually used in this basic block
+            if (bBlockDataGenValue.find(*it) != bBlockDataGenValue.end() ){
+              errs() << "WARNING: '" << (*it)->getName() << "' not initialized in Basic Block "<< bBlock->getName() << "\n";
+              // Save tem for next unsound pass
+              unInitVariables[&*bBlock].insert(*it);
             }
-            for (set<Value*>::iterator it=(bbMap[&*bBlock]->genValues).begin(); it!=(bbMap[&*bBlock]->genValues).end(); ++it)
-              if ((bbMap[&*bBlock]->killValues).find(*it) == (bbMap[&*bBlock]->killValues).end())
-                if ((bbMap[&*bBlock]->inValues).find(*it) == (bbMap[&*bBlock]->inValues).end()) {
-                  (bbMap[&*bBlock]->inValues).insert(*it);
-                  change = true;
+        errs() << "\n";
+      }      
+
+
+
+      change = 1;
+      do {
+        for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
+          set<Value*> &bBlockDataInValue = bbMapInit[&*bBlock]->inValues;
+          set<Value*> &bBlockDataOutValue = bbMapInit[&*bBlock]->outValues;
+          set<Value*> &bBlockDataGenValue = bbMapInit[&*bBlock]->genValues;
+          set<Value*> &bBlockDataKillValue = bbMapInit[&*bBlock]->killValues;
+          for (BasicBlock::iterator iInst = bBlock->begin(); iInst != bBlock->end(); iInst++)
+            if (LoadInst *inst = dyn_cast<LoadInst>(iInst))
+              if (bBlockDataInValue.find(inst->getPointerOperand()) != bBlockDataInValue.end())
+                for (Value::user_iterator ui = inst->user_begin(); ui != inst->user_end(); ui++) {
+                  //Single assignment a=b
+                  if (StoreInst *instStore = dyn_cast<StoreInst>(*ui))
+                    if (bBlockDataInValue.find(instStore->getPointerOperand()) == bBlockDataInValue.end()) {
+                      bBlockDataInValue.insert(instStore->getPointerOperand());
+                      change = 1;
+                      bBlockDataKillValue.erase(instStore->getPointerOperand());
+                    }
+                  //self assignment and computational a=a+1 or a+a+b
+                  if (Instruction *instChain = dyn_cast<Instruction>(*ui))
+                    for (Value::user_iterator ui = instChain->user_begin(); ui != instChain->user_end(); ui++)
+                      if (StoreInst *instStore = dyn_cast<StoreInst>(*ui))
+                        if (bBlockDataInValue.find(instStore->getPointerOperand()) == bBlockDataInValue.end()) {
+                          errs() << *instStore << "\n";
+                          bBlockDataInValue.insert(instStore->getPointerOperand());
+                          errs() << instStore->getPointerOperand()->getName() << "\n";
+                          change = 1;
+                          bBlockDataKillValue.erase(instStore->getPointerOperand());
+                        }                          
                 }
-          }
-
-        } while(change);
-
-        // Process of unsound variable that is loaded from an uninitialized variable
-        //  if we found such a variable, we will do the whole analysis again
-        change = false;
-        do {
-          change = false;
-          for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
-            set<Value*> &bBlockDataInValue = bbMap[&*bBlock]->inValues;
-            set<Value*> &bBlockDataOutValue = bbMap[&*bBlock]->outValues;
-            set<Value*> &bBlockDataGenValue = bbMap[&*bBlock]->genValues;
-            set<Value*> &bBlockDataKillValue = bbMap[&*bBlock]->killValues;
-            for (BasicBlock::iterator iInst = bBlock->begin(); iInst != bBlock->end(); iInst++)
-              if (LoadInst *inst = dyn_cast<LoadInst>(iInst))
-                if (bBlockDataInValue.find(inst->getPointerOperand()) != bBlockDataInValue.end())
-                  for (Value::user_iterator ui = inst->user_begin(); ui != inst->user_end(); ui++)
-                    if (StoreInst *instStore = dyn_cast<StoreInst>(*ui))
-                      if (bBlockDataInValue.find(instStore->getPointerOperand()) == bBlockDataInValue.end()) {
-                        bBlockDataInValue.insert(instStore->getPointerOperand());
-                        change = true;
-                        globalChange = true;
-                        bBlockDataKillValue.erase(instStore->getPointerOperand());
-                      }
-          }
-        } while(change);
-
-      }while(globalChange);
+        }
+      } while(change--);
 
       /*
       // Now Lets Process across Basic Blocks
@@ -233,15 +266,15 @@ namespace {
           for (pred_iterator predIt = pred_begin(&*bBlock); predIt != pred_end(&*bBlock); predIt++) {
             numPred++;
             errs() << bBlock->getName() <<  ":" << (*predIt)->getName() << ":\n";
-            for (set<Value*>::iterator it=(bbMap[*predIt]->definedValues).begin(); it!=(bbMap[*predIt]->definedValues).end(); ++it)
+            for (set<Value*>::iterator it=(bbMapInit[*predIt]->definedValues).begin(); it!=(bbMapInit[*predIt]->definedValues).end(); ++it)
               intersectionInVar[*it]+=1;
           }
 
           //Now check if there are any reaching initialization (intersection)
           for (map<Value*, int>::iterator it=intersectionInVar.begin(); it!=intersectionInVar.end(); ++it)
             if (it->second == numPred)
-              if ((bbMap[&*bBlock]->definedValues).find(it->first) == (bbMap[&*bBlock]->definedValues).end()) {
-                (bbMap[&*bBlock]->definedValues).insert(it->first);
+              if ((bbMapInit[&*bBlock]->definedValues).find(it->first) == (bbMapInit[&*bBlock]->definedValues).end()) {
+                (bbMapInit[&*bBlock]->definedValues).insert(it->first);
                 // If there is change in Defined values we need to process all basic blocks again(not optimized way)
                 change = true;
               }
@@ -252,23 +285,17 @@ namespace {
       */
 
       
-      // Debug Print
+      // Debug Print 
       /*
       for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
         errs() << "B-BB " << bBlock->getName() << ":\n";
-        bbMap[&*bBlock]->printBasicBlockData();
+        bbMapInit[&*bBlock]->printBasicBlockData();
       }
       */
       
+      
 
-      for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
-        set<Value*> &bBlockDataOutValue = bbMap[&*bBlock]->outValues;
-        errs() << bBlock->getName() << ":\n";
-        for (set<Value*>::iterator it=bBlockDataOutValue.begin(); it!=bBlockDataOutValue.end(); ++it) {
-          errs() << "WARNING: '" << (*it)->getName() << "' not initialized in Basic Block "<< bBlock->getName() << "\n";
-        }
-        errs() << "\n";
-      }
+
 
 
       return false;
