@@ -191,6 +191,7 @@ namespace {
       }
 
       // Walk through CFG and propagate definitions
+      //  This is iterative because of back-edges
       bool change = false;
       do {
         change = false;
