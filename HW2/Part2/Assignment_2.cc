@@ -53,8 +53,7 @@ namespace {
           errs() << "\n\t\t\t" <<*(*itSet);
         errs() << "\n";
       } 
-
-      errs() << "-------------------------\n";
+ 
     }
   };
 
@@ -71,11 +70,13 @@ namespace {
       createReachingDefinitionWithConstants(F ,bbMap);
       
       // Debug Print for BB data
+      errs() << "***Basic Block Data:\n";
       for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
         errs() << "BB Begin:" << bBlock->getName() << ":\n";
         bbMap[&*bBlock]->printBasicBlockData();
       }
 
+      errs() << "***Basic Blocks:\n";
       errs() << "----------------------------------------------------------\n";
       errs() << "Before:\n";
       for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++)
@@ -90,30 +91,6 @@ namespace {
       for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++)
         errs() << *bBlock << "\n";
 
-      
-      /*
-      for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) 
-        for (BasicBlock::iterator iInst = bBlock->begin(); iInst != bBlock->end(); iInst++)
-          for(int oprandNum=0; oprandNum<(iInst->getNumOperands()); oprandNum++)
-            if ((bbMap[&*bBlock]->valueMap).find(iInst->getOperand(oprandNum)) !=  (bbMap[&*bBlock]->valueMap).end())
-              errs() << *iInst << "\n";
-      */
-
-          /*
-          if (StoreInst *inst = dyn_cast<StoreInst>(iInst)) {
-            string operandName = ((inst->getPointerOperand())->getName()).str();
-            errs() << "L" << getLine(iInst) << "::" << iInst->getOpcodeName() << " " << operandName << "\n";
-
-            Value *v = inst->getOperand(0);
-            if (ConstantInt* CI = dyn_cast<ConstantInt>(v)) {
-              errs() << "Yay\n";
-              errs() << CI->getLimitedValue() << "\n";
-            }
-
-            //ReplaceInstWithInst(inst->getParent()->getInstList(), iInst, new LoadInst((inst->getPointerOperand()), 0, "ptrToReplacedInt"));
-          }*/
-
-
 
       return true;
     }
@@ -121,52 +98,55 @@ namespace {
 
     void replaceConstants(Function &F, map<BasicBlock*, basicBlockData*> &bbMap) {
 
-      for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) 
-        for (BasicBlock::iterator iInst = bBlock->begin(); iInst != bBlock->end(); iInst++) {
+      int change = 1;
+      do {
+        for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) 
+          for (BasicBlock::iterator iInst = bBlock->begin(); iInst != bBlock->end(); iInst++) {
 
-          for(unsigned int oprandNum=0; oprandNum<(iInst->getNumOperands()); oprandNum++) {
-            Value* operandValue = iInst->getOperand(oprandNum);
-            map<Value*, set<Value*> >::iterator itMap = (bbMap[&*bBlock]->valueMap).find(operandValue);
-            if (itMap !=  (bbMap[&*bBlock]->valueMap).end())
-              if ((itMap->second).size() == 1) {
-                Value *v = *((itMap->second).begin());
-                bool instDelete = false;
+            for(unsigned int oprandNum=0; oprandNum<(iInst->getNumOperands()); oprandNum++) {
+              Value* operandValue = iInst->getOperand(oprandNum);
+              map<Value*, set<Value*> >::iterator itMap = (bbMap[&*bBlock]->valueMap).find(operandValue);
+              if (itMap !=  (bbMap[&*bBlock]->valueMap).end())
+                if ((itMap->second).size() == 1) {
+                  Value *v = *((itMap->second).begin());
+                  bool instDelete = false;
 
-                if (ConstantInt* CI = dyn_cast<ConstantInt>(v)) {
-                  //Now mapped value has 1 reaching definition, it is constant, and we are not in generating 
-                  if(LoadInst *inst = dyn_cast<LoadInst>(iInst)) { //load
-                    errs() << "rep: " << *inst << "   "  << *v << "\n";
-                    iInst->replaceAllUsesWith(v);
-                    iInst = iInst->eraseFromParent();
-                    instDelete = true;          
-                    break;
-                  }
-                  else {
-                    if (AllocaInst *inst = dyn_cast<AllocaInst>(iInst))
+                  if (ConstantInt* CI = dyn_cast<ConstantInt>(v)) {
+                    //Now mapped value has 1 reaching definition, it is constant, and we are not in generating 
+                    if(LoadInst *inst = dyn_cast<LoadInst>(iInst)) { //load
+                      errs() << "*rep1: " << *inst << "   with   "  << *v << "\n";
+                      iInst->replaceAllUsesWith(v);
+                      iInst = iInst->eraseFromParent();
+                      instDelete = true;          
                       break;
-                    if (AllocaInst *inst = dyn_cast<AllocaInst>(operandValue))
-                      break;
-                    errs() << "rep2: " << *inst << "   "  << *v << "\n";
-                    operandValue->replaceAllUsesWith(v);
+                    }
+                    else {
+                      if (AllocaInst *inst = dyn_cast<AllocaInst>(iInst))
+                        break;
+                      if (AllocaInst *inst = dyn_cast<AllocaInst>(operandValue))
+                        break;
+                      errs() << "*rep2: " << *inst <<  "  with  "  << *v << "\n";
+                      operandValue->replaceAllUsesWith(v);
+                      change = 2;
+                    }
                   }
-                }
 
-                if (!instDelete) {
-                  Constant *c = ConstantFoldInstruction(&*iInst, iInst->getModule()->getDataLayout(),NULL);
-                  if(c)
-                    errs()<<"Expression evaluates to Const of value : "<<(*c);
-                }
+                  if (!instDelete) {
+                    Constant *c = ConstantFoldInstruction(&*iInst, iInst->getModule()->getDataLayout(),NULL);
+                    if(c) {
+                      errs()<<"Expression evaluates to Const of value : "<<(*c);
+                      change = 2;
+                    }
+                  }
+                  
                 
-              
-              }
-          }
+                }
+            }
 
 
 
         }
-
-
-        //for (map<Value*, set<Value*> >::iterator it= (bbMap[&*bBlock]->valueMap).begin(); it!=(bbMap[&*bBlock]->valueMap).end(); ++it)
+      } while(change--);
 
 
     }
