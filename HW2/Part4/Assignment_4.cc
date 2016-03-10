@@ -209,7 +209,6 @@ namespace {
                   for (Value::user_iterator ui = inst->user_begin(); ui != inst->user_end(); ui++)
                     if (StoreInst *instStore = dyn_cast<StoreInst>(*ui))
                       if (bBlockDataInValue.find(instStore->getPointerOperand()) == bBlockDataInValue.end()) {
-                        errs() << *instStore << "\n";
                         bBlockDataInValue.insert(instStore->getPointerOperand());
                         change = true;
                         globalChange = true;
@@ -254,10 +253,12 @@ namespace {
 
       
       // Debug Print
+      /*
       for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
         errs() << "B-BB " << bBlock->getName() << ":\n";
         bbMap[&*bBlock]->printBasicBlockData();
       }
+      */
       
 
       for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
