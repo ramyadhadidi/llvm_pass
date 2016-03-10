@@ -229,7 +229,7 @@ namespace {
       } while(change--);
 
 
-      // Print unInitVariables variables
+      // Save unInitVariables variables for printing
       for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
         set<Value*> &bBlockDataInValue = bbMapInit[&*bBlock]->inValues;
         set<Value*> &bBlockDataGenValue = bbMapInit[&*bBlock]->genValues;
@@ -241,7 +241,7 @@ namespace {
             //Print if it is actually used in this basic block
             if (bBlockDataGenValue.find(*it) != bBlockDataGenValue.end() )
             {
-              errs() << "WARNING: '" << (*it)->getName() << "' not initialized in Basic Block "<< bBlock->getName() << "\n";
+              //errs() << "WARNING: '" << (*it)->getName() << "' not initialized in Basic Block "<< bBlock->getName() << "\n";
               // Save them for next unsound pass
               unInitVariables.insert(*it);
               // Save them for print
@@ -251,10 +251,13 @@ namespace {
       }      
       // --------------------------------------------------------------------------------------------------------//
 
+      // Debug Print 
+      /*
       for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
         errs() << "A-BB " << bBlock->getName() << ":\n";
         bbMapInit[&*bBlock]->printBasicBlockData();
       }
+      */
 
 
       // --------------------------------------------------------------------------------------------------------//
@@ -338,28 +341,28 @@ namespace {
         }
 
       } while(change--);
+      // --------------------------------------------------------------------------------------------------------//
 
-
-
-      // Print unSound variables
-      for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
-        set<Value*> &bBlockDataOutValue = bbMapSound[&*bBlock]->outValues;
-        errs() << bBlock->getName() << ":\n";
-        for (set<Value*>::iterator it=bBlockDataOutValue.begin(); it!=bBlockDataOutValue.end(); ++it)
-              errs() << "WARNING: '" << (*it)->getName() << "' unsound in Basic Block "<< bBlock->getName() << "\n";
-        errs() << "\n";
-      }  
-
-
-      
       // Debug Print 
-      
+      /*
       for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
         errs() << "B-BB " << bBlock->getName() << ":\n";
         bbMapSound[&*bBlock]->printBasicBlockData();
       }
-      
-      
+      */
+
+      // Print unSound variables
+      for (Function::iterator bBlock = F.begin(); bBlock != F.end(); bBlock++) {
+        set<Value*> &bBlockDataSound = bbMapSound[&*bBlock]->outValues;
+        set<Value*> &bBlockDataUninit = bbMapInit[&*bBlock]->outValues;
+        errs() << bBlock->getName() << ":\n";
+        for (set<Value*>::iterator it=bBlockDataUninit.begin(); it!=bBlockDataUninit.end(); ++it)
+              errs() << "WARNING: '" << (*it)->getName() << "' not initialized in Basic Block "<< bBlock->getName() << "\n";
+        for (set<Value*>::iterator it=bBlockDataSound.begin(); it!=bBlockDataSound.end(); ++it)
+              errs() << "WARNING: '" << (*it)->getName() << "' unsound in Basic Block "<< bBlock->getName() << "\n";
+        errs() << "\n";
+      }  
+
 
 
       return false;
