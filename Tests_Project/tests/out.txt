@@ -1,0 +1,506 @@
+Basic block (name=entry) has 34instructions.
+===================================
+Identified Bounds Checks
+===========================
+Instruction:   %3 = load i32* %arrayidx, align 4
+Lower Bound: 0
+Upper Bound: i64 20
+Index:   %idxprom = sext i32 %1 to i64
+===========================
+Instruction:   %6 = load i32* %arrayidx2, align 4
+Lower Bound: 0
+Upper Bound: i64 20
+Index:   %idxprom1 = sext i32 %add to i64
+===========================
+Instruction:   %10 = load i32* %arrayidx5, align 4
+Lower Bound: 0
+Upper Bound: i64 20
+Index:   %idxprom4 = sext i32 %8 to i64
+===================================
+===================================
+Building Constraints Graph
+===========================================
+Allocate Instruction:   %retval = alloca i32, align 4
+===========================================
+Allocate Instruction:   %argc.addr = alloca i32, align 4
+===========================================
+Allocate Instruction:   %argv.addr = alloca i8**, align 8
+===========================================
+Allocate Instruction:   %arr = alloca [5 x i32], align 16
+===========================================
+Allocate Instruction:   %i = alloca i32, align 4
+===========================================
+Allocate Instruction:   %j = alloca i32, align 4
+===========================================
+Allocate Instruction:   %k = alloca i32, align 4
+===========================================
+Allocate Instruction:   %l = alloca i32, align 4
+===========================================
+Store Operator:   store i32 0, i32* %retval
+===========================================
+Store Operator:   store i32 %argc, i32* %argc.addr, align 4
+===========================================
+Store Operator:   store i8** %argv, i8*** %argv.addr, align 8
+Storing From Pointer
+===========================================
+Cast Operator:   %0 = bitcast [5 x i32]* %arr to i8*
+===========================================
+Function Call:   call void @llvm.memcpy.p0i8.p0i8.i64(i8* %0, i8* bitcast ([5 x i32]* @_ZZ4mainE3arr to i8*), i64 20, i32 16, i1 false)
+===========================================
+Store Operator:   store i32 1, i32* %i, align 4
+===========================================
+Load Operator:   %1 = load i32* %i, align 4
+===========================================
+Cast Operator:   %idxprom = sext i32 %1 to i64
+===========================================
+Multiply Operator:   %arrayidx.idx = mul i64 %idxprom, 4
+===========================================
+Add Operator:   %arrayidx.offs = add i64 %arrayidx.idx, 0
+===========================================
+Add Operator:   %2 = add i64 0, %arrayidx.offs
+===========================================
+GEP:   %arrayidx = getelementptr inbounds [5 x i32]* %arr, i32 0, i64 %idxprom
+===========================================
+Load Operator:   %3 = load i32* %arrayidx, align 4
+===========================================
+Store Operator:   store i32 %3, i32* %j, align 4
+===========================================
+Load Operator:   %4 = load i32* %i, align 4
+===========================================
+Add Operator:   %add = add nsw i32 %4, 1
+===========================================
+Cast Operator:   %idxprom1 = sext i32 %add to i64
+===========================================
+Multiply Operator:   %arrayidx2.idx = mul i64 %idxprom1, 4
+===========================================
+Add Operator:   %arrayidx2.offs = add i64 %arrayidx2.idx, 0
+===========================================
+Add Operator:   %5 = add i64 0, %arrayidx2.offs
+===========================================
+GEP:   %arrayidx2 = getelementptr inbounds [5 x i32]* %arr, i32 0, i64 %idxprom1
+===========================================
+Load Operator:   %6 = load i32* %arrayidx2, align 4
+===========================================
+Store Operator:   store i32 %6, i32* %k, align 4
+===========================================
+Load Operator:   %7 = load i32* %i, align 4
+===========================================
+Add Operator:   %add3 = add nsw i32 %7, 1
+===========================================
+Store Operator:   store i32 %add3, i32* %i, align 4
+===========================================
+Load Operator:   %8 = load i32* %i, align 4
+===========================================
+Cast Operator:   %idxprom4 = sext i32 %8 to i64
+===========================================
+Multiply Operator:   %arrayidx5.idx = mul i64 %idxprom4, 4
+===========================================
+Add Operator:   %arrayidx5.offs = add i64 %arrayidx5.idx, 0
+===========================================
+Add Operator:   %9 = add i64 0, %arrayidx5.offs
+===========================================
+GEP:   %arrayidx5 = getelementptr inbounds [5 x i32]* %arr, i32 0, i64 %idxprom4
+===========================================
+Load Operator:   %10 = load i32* %arrayidx5, align 4
+===========================================
+Store Operator:   store i32 %10, i32* %l, align 4
+===========================================
+Handle opcode: ret?:   ret i32 0
+Constraint Graph
+==================================
+Value:   %retval = alloca i32, align 4
+id: 0
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %argc.addr = alloca i32, align 4
+id: 0
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %argv.addr = alloca i8**, align 8
+id: 0
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %arr = alloca [5 x i32], align 16
+id: 0
+Predecessor: NONE
+Successors: ([0]  %0 = bitcast [5 x i32]* %arr to i8*: EQUALS)
+==================================
+==================================
+Value:   %i = alloca i32, align 4
+id: 0
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %j = alloca i32, align 4
+id: 0
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %k = alloca i32, align 4
+id: 0
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %l = alloca i32, align 4
+id: 0
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %retval = alloca i32, align 4
+id: 1
+Constant Value: 0
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %argc.addr = alloca i32, align 4
+id: 1
+Predecessor: [0]i32 %argc: EQUALS
+Successors:
+==================================
+==================================
+Value: i32 %argc
+id: 0
+Predecessor: NONE
+Successors: ([1]  %argc.addr = alloca i32, align 4: EQUALS)
+==================================
+==================================
+Value:   %argv.addr = alloca i8**, align 8
+id: 1
+Predecessor: [0]i8** %argv: EQUALS
+Successors:
+==================================
+==================================
+Value: i8** %argv
+id: 0
+Predecessor: NONE
+Successors: ([1]  %argv.addr = alloca i8**, align 8: EQUALS)
+==================================
+==================================
+Value:   %i = alloca i32, align 4
+id: 1
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %j = alloca i32, align 4
+id: 1
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %k = alloca i32, align 4
+id: 1
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %retval = alloca i32, align 4
+id: 2
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %argc.addr = alloca i32, align 4
+id: 2
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %argv.addr = alloca i8**, align 8
+id: 2
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %arr = alloca [5 x i32], align 16
+id: 1
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %l = alloca i32, align 4
+id: 1
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %0 = bitcast [5 x i32]* %arr to i8*
+id: 0
+Predecessor: [0]  %arr = alloca [5 x i32], align 16: EQUALS
+Successors:
+==================================
+==================================
+Value:   %i = alloca i32, align 4
+id: 2
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %j = alloca i32, align 4
+id: 2
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %k = alloca i32, align 4
+id: 2
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %retval = alloca i32, align 4
+id: 3
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %argc.addr = alloca i32, align 4
+id: 3
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %argv.addr = alloca i8**, align 8
+id: 3
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %arr = alloca [5 x i32], align 16
+id: 2
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %l = alloca i32, align 4
+id: 2
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %i = alloca i32, align 4
+id: 3
+Constant Value: 1
+Predecessor: NONE
+Successors: ([0]  %1 = load i32* %i, align 4: EQUALS) ([0]  %4 = load i32* %i, align 4: EQUALS) ([0]  %7 = load i32* %i, align 4: EQUALS)
+==================================
+==================================
+Value:   %1 = load i32* %i, align 4
+id: 0
+Constant Value: 1
+Predecessor: [3]  %i = alloca i32, align 4: EQUALS
+Successors: ([0]  %idxprom = sext i32 %1 to i64: EQUALS)
+==================================
+==================================
+Value:   %idxprom = sext i32 %1 to i64
+id: 0
+Constant Value: 1
+Predecessor: [0]  %1 = load i32* %i, align 4: EQUALS
+Successors: ([0]  %arrayidx.idx = mul i64 %idxprom, 4: LESS_THAN) ([0]  %arrayidx = getelementptr inbounds [5 x i32]* %arr, i32 0, i64 %idxprom: EQUALS)
+==================================
+==================================
+Value:   %arrayidx.idx = mul i64 %idxprom, 4
+id: 0
+Constant Value: 4
+Predecessor: [0]  %idxprom = sext i32 %1 to i64: GREATER_THAN
+Successors: ([0]  %arrayidx.offs = add i64 %arrayidx.idx, 0: EQUALS)
+==================================
+==================================
+Value:   %arrayidx.offs = add i64 %arrayidx.idx, 0
+id: 0
+Constant Value: 4
+Predecessor: [0]  %arrayidx.idx = mul i64 %idxprom, 4: EQUALS
+Successors: ([0]  %2 = add i64 0, %arrayidx.offs: EQUALS)
+==================================
+==================================
+Value:   %2 = add i64 0, %arrayidx.offs
+id: 0
+Constant Value: 4
+Predecessor: [0]  %arrayidx.offs = add i64 %arrayidx.idx, 0: EQUALS
+Successors:
+==================================
+==================================
+Value:   %arrayidx = getelementptr inbounds [5 x i32]* %arr, i32 0, i64 %idxprom
+id: 0
+Constant Value: 1
+Predecessor: [0]  %idxprom = sext i32 %1 to i64: EQUALS
+Successors:
+==================================
+==================================
+Value:   %arrayidx = getelementptr inbounds [5 x i32]* %arr, i32 0, i64 %idxprom
+id: 1
+Predecessor: NONE
+Successors: ([0]  %3 = load i32* %arrayidx, align 4: EQUALS)
+==================================
+==================================
+Value:   %3 = load i32* %arrayidx, align 4
+id: 0
+Predecessor: [1]  %arrayidx = getelementptr inbounds [5 x i32]* %arr, i32 0, i64 %idxprom: EQUALS
+Successors: ([3]  %j = alloca i32, align 4: EQUALS)
+==================================
+==================================
+Value:   %j = alloca i32, align 4
+id: 3
+Predecessor: [0]  %3 = load i32* %arrayidx, align 4: EQUALS
+Successors:
+==================================
+==================================
+Value:   %4 = load i32* %i, align 4
+id: 0
+Constant Value: 1
+Predecessor: [3]  %i = alloca i32, align 4: EQUALS
+Successors: ([0]  %add = add nsw i32 %4, 1: LESS_THAN)
+==================================
+==================================
+Value:   %add = add nsw i32 %4, 1
+id: 0
+Constant Value: 2
+Predecessor: [0]  %4 = load i32* %i, align 4: GREATER_THAN
+Successors: ([0]  %idxprom1 = sext i32 %add to i64: EQUALS)
+==================================
+==================================
+Value:   %idxprom1 = sext i32 %add to i64
+id: 0
+Constant Value: 2
+Predecessor: [0]  %add = add nsw i32 %4, 1: EQUALS
+Successors: ([0]  %arrayidx2.idx = mul i64 %idxprom1, 4: LESS_THAN) ([0]  %arrayidx2 = getelementptr inbounds [5 x i32]* %arr, i32 0, i64 %idxprom1: EQUALS)
+==================================
+==================================
+Value:   %arrayidx2.idx = mul i64 %idxprom1, 4
+id: 0
+Constant Value: 8
+Predecessor: [0]  %idxprom1 = sext i32 %add to i64: GREATER_THAN
+Successors: ([0]  %arrayidx2.offs = add i64 %arrayidx2.idx, 0: EQUALS)
+==================================
+==================================
+Value:   %arrayidx2.offs = add i64 %arrayidx2.idx, 0
+id: 0
+Constant Value: 8
+Predecessor: [0]  %arrayidx2.idx = mul i64 %idxprom1, 4: EQUALS
+Successors: ([0]  %5 = add i64 0, %arrayidx2.offs: EQUALS)
+==================================
+==================================
+Value:   %5 = add i64 0, %arrayidx2.offs
+id: 0
+Constant Value: 8
+Predecessor: [0]  %arrayidx2.offs = add i64 %arrayidx2.idx, 0: EQUALS
+Successors:
+==================================
+==================================
+Value:   %arrayidx2 = getelementptr inbounds [5 x i32]* %arr, i32 0, i64 %idxprom1
+id: 0
+Constant Value: 2
+Predecessor: [0]  %idxprom1 = sext i32 %add to i64: EQUALS
+Successors:
+==================================
+==================================
+Value:   %arrayidx2 = getelementptr inbounds [5 x i32]* %arr, i32 0, i64 %idxprom1
+id: 1
+Predecessor: NONE
+Successors: ([0]  %6 = load i32* %arrayidx2, align 4: EQUALS)
+==================================
+==================================
+Value:   %6 = load i32* %arrayidx2, align 4
+id: 0
+Predecessor: [1]  %arrayidx2 = getelementptr inbounds [5 x i32]* %arr, i32 0, i64 %idxprom1: EQUALS
+Successors: ([3]  %k = alloca i32, align 4: EQUALS)
+==================================
+==================================
+Value:   %k = alloca i32, align 4
+id: 3
+Predecessor: [0]  %6 = load i32* %arrayidx2, align 4: EQUALS
+Successors:
+==================================
+==================================
+Value:   %7 = load i32* %i, align 4
+id: 0
+Constant Value: 1
+Predecessor: [3]  %i = alloca i32, align 4: EQUALS
+Successors: ([0]  %add3 = add nsw i32 %7, 1: LESS_THAN)
+==================================
+==================================
+Value:   %add3 = add nsw i32 %7, 1
+id: 0
+Constant Value: 2
+Predecessor: [0]  %7 = load i32* %i, align 4: GREATER_THAN
+Successors: ([4]  %i = alloca i32, align 4: EQUALS)
+==================================
+==================================
+Value:   %i = alloca i32, align 4
+id: 4
+Constant Value: 2
+Predecessor: [0]  %add3 = add nsw i32 %7, 1: EQUALS
+Successors: ([0]  %8 = load i32* %i, align 4: EQUALS)
+==================================
+==================================
+Value:   %8 = load i32* %i, align 4
+id: 0
+Constant Value: 2
+Predecessor: [4]  %i = alloca i32, align 4: EQUALS
+Successors: ([0]  %idxprom4 = sext i32 %8 to i64: EQUALS)
+==================================
+==================================
+Value:   %idxprom4 = sext i32 %8 to i64
+id: 0
+Constant Value: 2
+Predecessor: [0]  %8 = load i32* %i, align 4: EQUALS
+Successors: ([0]  %arrayidx5.idx = mul i64 %idxprom4, 4: LESS_THAN) ([0]  %arrayidx5 = getelementptr inbounds [5 x i32]* %arr, i32 0, i64 %idxprom4: EQUALS)
+==================================
+==================================
+Value:   %arrayidx5.idx = mul i64 %idxprom4, 4
+id: 0
+Constant Value: 8
+Predecessor: [0]  %idxprom4 = sext i32 %8 to i64: GREATER_THAN
+Successors: ([0]  %arrayidx5.offs = add i64 %arrayidx5.idx, 0: EQUALS)
+==================================
+==================================
+Value:   %arrayidx5.offs = add i64 %arrayidx5.idx, 0
+id: 0
+Constant Value: 8
+Predecessor: [0]  %arrayidx5.idx = mul i64 %idxprom4, 4: EQUALS
+Successors: ([0]  %9 = add i64 0, %arrayidx5.offs: EQUALS)
+==================================
+==================================
+Value:   %9 = add i64 0, %arrayidx5.offs
+id: 0
+Constant Value: 8
+Predecessor: [0]  %arrayidx5.offs = add i64 %arrayidx5.idx, 0: EQUALS
+Successors:
+==================================
+==================================
+Value:   %arrayidx5 = getelementptr inbounds [5 x i32]* %arr, i32 0, i64 %idxprom4
+id: 0
+Constant Value: 2
+Predecessor: [0]  %idxprom4 = sext i32 %8 to i64: EQUALS
+Successors:
+==================================
+==================================
+Value:   %arrayidx5 = getelementptr inbounds [5 x i32]* %arr, i32 0, i64 %idxprom4
+id: 1
+Predecessor: NONE
+Successors: ([0]  %10 = load i32* %arrayidx5, align 4: EQUALS)
+==================================
+==================================
+Value:   %10 = load i32* %arrayidx5, align 4
+id: 0
+Predecessor: [1]  %arrayidx5 = getelementptr inbounds [5 x i32]* %arr, i32 0, i64 %idxprom4: EQUALS
+Successors: ([3]  %l = alloca i32, align 4: EQUALS)
+==================================
+==================================
+Value:   %l = alloca i32, align 4
+id: 3
+Predecessor: [0]  %10 = load i32* %arrayidx5, align 4: EQUALS
+Successors:
+==================================
+===================================

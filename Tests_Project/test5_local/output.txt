@@ -1,0 +1,1010 @@
+===================================
+Identified Bounds Checks
+  %4 = add i64 0, %arrayidx.offs
+  %5 = add i64 0, %arrayidx2.offs
+  %7 = add i64 0, %arrayidx6.offs
+  %8 = add i64 0, %arrayidx8.offs
+  %11 = add i64 %10, %arrayidx13.offs
+===========================
+Instruction:   store i32 100, i32* %arrayidx, align 4
+Lower Bound Check: 0
+Upper Bound Check: i64 1200
+Index:   %idxprom = zext i32 %3 to i64
+Moving Check :No
+Insert Point:   store i32 100, i32* %arrayidx, align 4
+===========================
+Instruction:   store i32 100, i32* %arrayidx2, align 4
+Lower Bound Check: 0
+Upper Bound Check:   %1 = zext i32 %0 to i64
+Index:   %idxprom1 = zext i32 %add to i64
+Moving Check :No
+Insert Point:   store i32 100, i32* %arrayidx2, align 4
+===========================
+Instruction:   store i32 0, i32* %arrayidx6, align 4
+Lower Bound Check: 0
+Upper Bound Check: i64 1200
+Index:   %idxprom5 = zext i32 %6 to i64
+Moving Check :No
+Insert Point:   store i32 0, i32* %arrayidx6, align 4
+===========================
+Instruction:   store i8 0, i8* %arrayidx8, align 1
+Lower Bound Check: 0
+Upper Bound Check: i64 240100
+Index:   %idxprom7 = zext i32 %7 to i64
+Moving Check :No
+Insert Point:   store i8 0, i8* %arrayidx8, align 1
+===========================
+Instruction:   store float 0.000000e+00, float* %arrayidx13, align 4
+Lower Bound Check: 0
+Upper Bound Check: i64 240100
+Index:   %idxprom10 = zext i32 %add9 to i64
+Moving Check :No
+Insert Point:   store float 0.000000e+00, float* %arrayidx13, align 4
+===================================
+===================================
+Building Constraints Graph
+===========================================
+Instruction Name: retval
+Allocate Instruction:   %retval = alloca i32, align 4
+===========================================
+Instruction Name: a
+Allocate Instruction:   %a = alloca [300 x i32], align 16
+===========================================
+Instruction Name: n
+Allocate Instruction:   %n = alloca i32, align 4
+===========================================
+Instruction Name: saved_stack
+Allocate Instruction:   %saved_stack = alloca i8*
+===========================================
+Instruction Name: i
+Allocate Instruction:   %i = alloca i32, align 4
+===========================================
+Instruction Name: strt
+Allocate Instruction:   %strt = alloca %struct.st, align 4
+===========================================
+Instruction Name: cleanup.dest.slot
+Allocate Instruction:   %cleanup.dest.slot = alloca i32
+===========================================
+Instruction Name: No Name
+Store Operator:   store i32 0, i32* %retval
+===========================================
+Instruction Name: No Name
+Store Operator:   store i32 50, i32* %n, align 4
+===========================================
+Instruction Name: No Name
+Load Operator:   %0 = load i32* %n, align 4
+===========================================
+Instruction Name: No Name
+Cast Operator:   %1 = zext i32 %0 to i64
+===========================================
+Instruction Name: No Name
+Function Call:   %2 = call i8* @llvm.stacksave()
+===========================================
+Instruction Name: No Name
+Store Operator:   store i8* %2, i8** %saved_stack
+Storing From Pointer
+===========================================
+Instruction Name: vla
+Allocate Instruction:   %vla = alloca i32, i64 %1, align 16
+===========================================
+Instruction Name: No Name
+Store Operator:   store i32 200, i32* %n, align 4
+===========================================
+Instruction Name: No Name
+Store Operator:   store i32 10, i32* %i, align 4
+===========================================
+Instruction Name: No Name
+Load Operator:   %3 = load i32* %i, align 4
+===========================================
+Instruction Name: idxprom
+Cast Operator:   %idxprom = zext i32 %3 to i64
+===========================================
+Instruction Name: arrayidx
+GEP:   %arrayidx = getelementptr inbounds [300 x i32]* %a, i32 0, i64 %idxprom
+===========================================
+Instruction Name: No Name
+Store Operator:   store i32 100, i32* %arrayidx, align 4
+===========================================
+Instruction Name: No Name
+Load Operator:   %4 = load i32* %i, align 4
+===========================================
+Instruction Name: add
+Add Operator:   %add = add i32 %4, 1
+===========================================
+Instruction Name: idxprom1
+Cast Operator:   %idxprom1 = zext i32 %add to i64
+===========================================
+Instruction Name: arrayidx2
+GEP:   %arrayidx2 = getelementptr inbounds i32* %vla, i64 %idxprom1
+===========================================
+Instruction Name: No Name
+Store Operator:   store i32 100, i32* %arrayidx2, align 4
+===========================================
+Instruction Name: No Name
+Load Operator:   %5 = load i32* %i, align 4
+===========================================
+Instruction Name: idxprom3
+Cast Operator:   %idxprom3 = zext i32 %5 to i64
+===========================================
+Instruction Name: arrayidx4
+GEP:   %arrayidx4 = getelementptr inbounds i32* %vla, i64 %idxprom3
+===========================================
+Instruction Name: No Name
+Store Operator:   store i32 0, i32* %arrayidx4, align 4
+===========================================
+Instruction Name: No Name
+Load Operator:   %6 = load i32* %i, align 4
+===========================================
+Instruction Name: idxprom5
+Cast Operator:   %idxprom5 = zext i32 %6 to i64
+===========================================
+Instruction Name: arrayidx6
+GEP:   %arrayidx6 = getelementptr inbounds [300 x i32]* %a, i32 0, i64 %idxprom5
+===========================================
+Instruction Name: No Name
+Store Operator:   store i32 0, i32* %arrayidx6, align 4
+===========================================
+Instruction Name: No Name
+Load Operator:   %7 = load i32* %i, align 4
+===========================================
+Instruction Name: idxprom7
+Cast Operator:   %idxprom7 = zext i32 %7 to i64
+===========================================
+Instruction Name: arr
+GEP:   %arr = getelementptr inbounds %struct.st* %strt, i32 0, i32 0
+Referenced an index that did not exist: i32 0
+===========================================
+Instruction Name: arrayidx8
+GEP:   %arrayidx8 = getelementptr inbounds [100 x i8]* %arr, i32 0, i64 %idxprom7
+===========================================
+Instruction Name: No Name
+Store Operator:   store i8 0, i8* %arrayidx8, align 1
+===========================================
+Instruction Name: No Name
+Load Operator:   %8 = load i32* %i, align 4
+===========================================
+Instruction Name: add9
+Add Operator:   %add9 = add i32 %8, 1
+===========================================
+Instruction Name: idxprom10
+Cast Operator:   %idxprom10 = zext i32 %add9 to i64
+===========================================
+Instruction Name: No Name
+Load Operator:   %9 = load i32* %i, align 4
+===========================================
+Instruction Name: idxprom11
+Cast Operator:   %idxprom11 = zext i32 %9 to i64
+===========================================
+Instruction Name: float_arr
+GEP:   %float_arr = getelementptr inbounds %struct.st* %strt, i32 0, i32 1
+Referenced an index that did not exist: i32 1
+===========================================
+Instruction Name: arrayidx12
+GEP:   %arrayidx12 = getelementptr inbounds [200 x [300 x float]]* %float_arr, i32 0, i64 %idxprom11
+===========================================
+Instruction Name: arrayidx13
+GEP:   %arrayidx13 = getelementptr inbounds [300 x float]* %arrayidx12, i32 0, i64 %idxprom10
+===========================================
+Instruction Name: No Name
+Store Operator:   store float 0.000000e+00, float* %arrayidx13, align 4
+===========================================
+Instruction Name: No Name
+Store Operator:   store i32 0, i32* %retval
+===========================================
+Instruction Name: No Name
+Store Operator:   store i32 1, i32* %cleanup.dest.slot
+===========================================
+Instruction Name: No Name
+Load Operator:   %10 = load i8** %saved_stack
+===========================================
+Instruction Name: No Name
+Function Call:   call void @llvm.stackrestore(i8* %10)
+===========================================
+Instruction Name: No Name
+Load Operator:   %11 = load i32* %retval
+===========================================
+Instruction Name: No Name
+Handle opcode: ret?:   ret i32 %11
+Constraint Graph
+==================================
+Value:   %retval = alloca i32, align 4
+id: 0
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %a = alloca [300 x i32], align 16
+id: 0
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %n = alloca i32, align 4
+id: 0
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %saved_stack = alloca i8*
+id: 0
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %i = alloca i32, align 4
+id: 0
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %strt = alloca %struct.st, align 4
+id: 0
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %cleanup.dest.slot = alloca i32
+id: 0
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %retval = alloca i32, align 4
+Instruction:   store i32 0, i32* %retval
+id: 1
+Can Move: Yes
+Constant Value: 0
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %n = alloca i32, align 4
+Instruction:   store i32 50, i32* %n, align 4
+id: 1
+Can Move: Yes
+Constant Value: 50
+Predecessor: NONE
+Successors: ([0]  %0 = load i32* %n, align 4: EQUALS)
+==================================
+==================================
+Value:   %0 = load i32* %n, align 4
+id: 0
+Can Move: Yes
+Constant Value: 50
+Predecessor: [1]  %n = alloca i32, align 4: EQUALS
+Successors: ([0]  %1 = zext i32 %0 to i64: EQUALS)
+==================================
+==================================
+Value:   %1 = zext i32 %0 to i64
+id: 0
+Can Move: Yes
+Constant Value: 50
+Predecessor: [0]  %0 = load i32* %n, align 4: EQUALS
+Successors:
+==================================
+==================================
+Value:   %retval = alloca i32, align 4
+id: 2
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %cleanup.dest.slot = alloca i32
+id: 1
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %a = alloca [300 x i32], align 16
+id: 1
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %n = alloca i32, align 4
+id: 2
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %saved_stack = alloca i8*
+id: 1
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %i = alloca i32, align 4
+id: 1
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %strt = alloca %struct.st, align 4
+id: 1
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %saved_stack = alloca i8*
+Instruction:   store i8* %2, i8** %saved_stack
+id: 2
+Can Move: Yes
+Predecessor: [0]  %2 = call i8* @llvm.stacksave(): EQUALS
+Successors:
+==================================
+==================================
+Value:   %2 = call i8* @llvm.stacksave()
+id: 0
+Can Move: Yes
+Predecessor: NONE
+Successors: ([2]  %saved_stack = alloca i8*: EQUALS)
+==================================
+==================================
+Value:   %retval = alloca i32, align 4
+id: 3
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %cleanup.dest.slot = alloca i32
+id: 2
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %a = alloca [300 x i32], align 16
+id: 2
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %n = alloca i32, align 4
+id: 3
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %saved_stack = alloca i8*
+id: 3
+Can Move: Yes
+Predecessor: NONE
+Successors: ([0]  %10 = load i8** %saved_stack: EQUALS)
+==================================
+==================================
+Value:   %i = alloca i32, align 4
+id: 2
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %strt = alloca %struct.st, align 4
+id: 2
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %vla = alloca i32, i64 %1, align 16
+id: 0
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %n = alloca i32, align 4
+Instruction:   store i32 200, i32* %n, align 4
+id: 4
+Can Move: Yes
+Constant Value: 200
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %i = alloca i32, align 4
+Instruction:   store i32 10, i32* %i, align 4
+id: 3
+Can Move: Yes
+Constant Value: 10
+Predecessor: NONE
+Successors: ([0]  %3 = load i32* %i, align 4: EQUALS) ([0]  %4 = load i32* %i, align 4: EQUALS) ([0]  %5 = load i32* %i, align 4: EQUALS) ([0]  %6 = load i32* %i, align 4: EQUALS) ([0]  %7 = load i32* %i, align 4: EQUALS) ([0]  %8 = load i32* %i, align 4: EQUALS) ([0]  %9 = load i32* %i, align 4: EQUALS)
+==================================
+==================================
+Value:   %3 = load i32* %i, align 4
+id: 0
+Can Move: Yes
+Constant Value: 10
+Predecessor: [3]  %i = alloca i32, align 4: EQUALS
+Successors: ([0]  %idxprom = zext i32 %3 to i64: EQUALS)
+==================================
+==================================
+Value:   %idxprom = zext i32 %3 to i64
+id: 0
+Can Move: Yes
+Constant Value: 10
+Predecessor: [0]  %3 = load i32* %i, align 4: EQUALS
+Successors: ([0]  %arrayidx = getelementptr inbounds [300 x i32]* %a, i32 0, i64 %idxprom: EQUALS)
+==================================
+==================================
+Value:   %arrayidx = getelementptr inbounds [300 x i32]* %a, i32 0, i64 %idxprom
+id: 0
+Can Move: Yes
+Constant Value: 10
+Predecessor: [0]  %idxprom = zext i32 %3 to i64: EQUALS
+Successors:
+==================================
+==================================
+Value:   %arrayidx = getelementptr inbounds [300 x i32]* %a, i32 0, i64 %idxprom
+Instruction:   store i32 100, i32* %arrayidx, align 4
+id: 1
+Can Move: Yes
+Constant Value: 100
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %4 = load i32* %i, align 4
+id: 0
+Can Move: Yes
+Constant Value: 10
+Predecessor: [3]  %i = alloca i32, align 4: EQUALS
+Successors: ([0]  %add = add i32 %4, 1: LESS_THAN)
+==================================
+==================================
+Value:   %add = add i32 %4, 1
+id: 0
+Can Move: Yes
+Constant Value: 11
+Predecessor: [0]  %4 = load i32* %i, align 4: GREATER_THAN
+Successors: ([0]  %idxprom1 = zext i32 %add to i64: EQUALS)
+==================================
+==================================
+Value:   %idxprom1 = zext i32 %add to i64
+id: 0
+Can Move: Yes
+Constant Value: 11
+Predecessor: [0]  %add = add i32 %4, 1: EQUALS
+Successors: ([0]  %arrayidx2 = getelementptr inbounds i32* %vla, i64 %idxprom1: EQUALS)
+==================================
+==================================
+Value:   %arrayidx2 = getelementptr inbounds i32* %vla, i64 %idxprom1
+id: 0
+Can Move: Yes
+Constant Value: 11
+Predecessor: [0]  %idxprom1 = zext i32 %add to i64: EQUALS
+Successors:
+==================================
+==================================
+Value:   %arrayidx2 = getelementptr inbounds i32* %vla, i64 %idxprom1
+Instruction:   store i32 100, i32* %arrayidx2, align 4
+id: 1
+Can Move: Yes
+Constant Value: 100
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %5 = load i32* %i, align 4
+id: 0
+Can Move: Yes
+Constant Value: 10
+Predecessor: [3]  %i = alloca i32, align 4: EQUALS
+Successors: ([0]  %idxprom3 = zext i32 %5 to i64: EQUALS)
+==================================
+==================================
+Value:   %idxprom3 = zext i32 %5 to i64
+id: 0
+Can Move: Yes
+Constant Value: 10
+Predecessor: [0]  %5 = load i32* %i, align 4: EQUALS
+Successors: ([0]  %arrayidx4 = getelementptr inbounds i32* %vla, i64 %idxprom3: EQUALS)
+==================================
+==================================
+Value:   %arrayidx4 = getelementptr inbounds i32* %vla, i64 %idxprom3
+id: 0
+Can Move: Yes
+Constant Value: 10
+Predecessor: [0]  %idxprom3 = zext i32 %5 to i64: EQUALS
+Successors:
+==================================
+==================================
+Value:   %arrayidx4 = getelementptr inbounds i32* %vla, i64 %idxprom3
+Instruction:   store i32 0, i32* %arrayidx4, align 4
+id: 1
+Can Move: Yes
+Constant Value: 0
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %6 = load i32* %i, align 4
+id: 0
+Can Move: Yes
+Constant Value: 10
+Predecessor: [3]  %i = alloca i32, align 4: EQUALS
+Successors: ([0]  %idxprom5 = zext i32 %6 to i64: EQUALS)
+==================================
+==================================
+Value:   %idxprom5 = zext i32 %6 to i64
+id: 0
+Can Move: Yes
+Constant Value: 10
+Predecessor: [0]  %6 = load i32* %i, align 4: EQUALS
+Successors: ([0]  %arrayidx6 = getelementptr inbounds [300 x i32]* %a, i32 0, i64 %idxprom5: EQUALS)
+==================================
+==================================
+Value:   %arrayidx6 = getelementptr inbounds [300 x i32]* %a, i32 0, i64 %idxprom5
+id: 0
+Can Move: Yes
+Constant Value: 10
+Predecessor: [0]  %idxprom5 = zext i32 %6 to i64: EQUALS
+Successors:
+==================================
+==================================
+Value:   %arrayidx6 = getelementptr inbounds [300 x i32]* %a, i32 0, i64 %idxprom5
+Instruction:   store i32 0, i32* %arrayidx6, align 4
+id: 1
+Can Move: Yes
+Constant Value: 0
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %7 = load i32* %i, align 4
+id: 0
+Can Move: Yes
+Constant Value: 10
+Predecessor: [3]  %i = alloca i32, align 4: EQUALS
+Successors: ([0]  %idxprom7 = zext i32 %7 to i64: EQUALS)
+==================================
+==================================
+Value:   %idxprom7 = zext i32 %7 to i64
+id: 0
+Can Move: Yes
+Constant Value: 10
+Predecessor: [0]  %7 = load i32* %i, align 4: EQUALS
+Successors: ([0]  %arrayidx8 = getelementptr inbounds [100 x i8]* %arr, i32 0, i64 %idxprom7: EQUALS)
+==================================
+==================================
+Value:   %arr = getelementptr inbounds %struct.st* %strt, i32 0, i32 0
+id: 0
+Can Move: Yes
+Constant Value: 0
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %arrayidx8 = getelementptr inbounds [100 x i8]* %arr, i32 0, i64 %idxprom7
+id: 0
+Can Move: Yes
+Constant Value: 10
+Predecessor: [0]  %idxprom7 = zext i32 %7 to i64: EQUALS
+Successors:
+==================================
+==================================
+Value:   %arrayidx8 = getelementptr inbounds [100 x i8]* %arr, i32 0, i64 %idxprom7
+Instruction:   store i8 0, i8* %arrayidx8, align 1
+id: 1
+Can Move: Yes
+Constant Value: 0
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %8 = load i32* %i, align 4
+id: 0
+Can Move: Yes
+Constant Value: 10
+Predecessor: [3]  %i = alloca i32, align 4: EQUALS
+Successors: ([0]  %add9 = add i32 %8, 1: LESS_THAN)
+==================================
+==================================
+Value:   %add9 = add i32 %8, 1
+id: 0
+Can Move: Yes
+Constant Value: 11
+Predecessor: [0]  %8 = load i32* %i, align 4: GREATER_THAN
+Successors: ([0]  %idxprom10 = zext i32 %add9 to i64: EQUALS)
+==================================
+==================================
+Value:   %idxprom10 = zext i32 %add9 to i64
+id: 0
+Can Move: Yes
+Constant Value: 11
+Predecessor: [0]  %add9 = add i32 %8, 1: EQUALS
+Successors: ([0]  %arrayidx13 = getelementptr inbounds [300 x float]* %arrayidx12, i32 0, i64 %idxprom10: EQUALS)
+==================================
+==================================
+Value:   %9 = load i32* %i, align 4
+id: 0
+Can Move: Yes
+Constant Value: 10
+Predecessor: [3]  %i = alloca i32, align 4: EQUALS
+Successors: ([0]  %idxprom11 = zext i32 %9 to i64: EQUALS)
+==================================
+==================================
+Value:   %idxprom11 = zext i32 %9 to i64
+id: 0
+Can Move: Yes
+Constant Value: 10
+Predecessor: [0]  %9 = load i32* %i, align 4: EQUALS
+Successors: ([0]  %arrayidx12 = getelementptr inbounds [200 x [300 x float]]* %float_arr, i32 0, i64 %idxprom11: EQUALS)
+==================================
+==================================
+Value:   %float_arr = getelementptr inbounds %struct.st* %strt, i32 0, i32 1
+id: 0
+Can Move: Yes
+Constant Value: 1
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %arrayidx12 = getelementptr inbounds [200 x [300 x float]]* %float_arr, i32 0, i64 %idxprom11
+id: 0
+Can Move: Yes
+Constant Value: 10
+Predecessor: [0]  %idxprom11 = zext i32 %9 to i64: EQUALS
+Successors:
+==================================
+==================================
+Value:   %arrayidx13 = getelementptr inbounds [300 x float]* %arrayidx12, i32 0, i64 %idxprom10
+id: 0
+Can Move: Yes
+Constant Value: 11
+Predecessor: [0]  %idxprom10 = zext i32 %add9 to i64: EQUALS
+Successors:
+==================================
+==================================
+Value:   %arrayidx13 = getelementptr inbounds [300 x float]* %arrayidx12, i32 0, i64 %idxprom10
+Instruction:   store float 0.000000e+00, float* %arrayidx13, align 4
+id: 1
+Can Move: Yes
+Predecessor: [0]float 0.000000e+00: EQUALS
+Successors:
+==================================
+==================================
+Value: float 0.000000e+00
+id: 0
+Can Move: Yes
+Predecessor: NONE
+Successors: ([1]  %arrayidx13 = getelementptr inbounds [300 x float]* %arrayidx12, i32 0, i64 %idxprom10: EQUALS)
+==================================
+==================================
+Value:   %retval = alloca i32, align 4
+Instruction:   store i32 0, i32* %retval
+id: 4
+Can Move: Yes
+Constant Value: 0
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %cleanup.dest.slot = alloca i32
+Instruction:   store i32 1, i32* %cleanup.dest.slot
+id: 3
+Can Move: Yes
+Constant Value: 1
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %10 = load i8** %saved_stack
+id: 0
+Can Move: Yes
+Predecessor: [3]  %saved_stack = alloca i8*: EQUALS
+Successors:
+==================================
+==================================
+Value:   %retval = alloca i32, align 4
+id: 5
+Can Move: Yes
+Predecessor: NONE
+Successors: ([0]  %11 = load i32* %retval: EQUALS)
+==================================
+==================================
+Value:   %cleanup.dest.slot = alloca i32
+id: 4
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %a = alloca [300 x i32], align 16
+id: 3
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %n = alloca i32, align 4
+id: 5
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %saved_stack = alloca i8*
+id: 4
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %i = alloca i32, align 4
+id: 4
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %strt = alloca %struct.st, align 4
+id: 3
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %arrayidx6 = getelementptr inbounds [300 x i32]* %a, i32 0, i64 %idxprom5
+id: 2
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %vla = alloca i32, i64 %1, align 16
+id: 1
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %arrayidx = getelementptr inbounds [300 x i32]* %a, i32 0, i64 %idxprom
+id: 2
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %arrayidx2 = getelementptr inbounds i32* %vla, i64 %idxprom1
+id: 2
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %arrayidx4 = getelementptr inbounds i32* %vla, i64 %idxprom3
+id: 2
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %arrayidx8 = getelementptr inbounds [100 x i8]* %arr, i32 0, i64 %idxprom7
+id: 2
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %arrayidx13 = getelementptr inbounds [300 x float]* %arrayidx12, i32 0, i64 %idxprom10
+id: 2
+Can Move: Yes
+Predecessor: NONE
+Successors:
+==================================
+==================================
+Value:   %11 = load i32* %retval
+id: 0
+Can Move: Yes
+Predecessor: [5]  %retval = alloca i32, align 4: EQUALS
+Successors:
+==================================
+==================================
+Value:   ret i32 %11
+id: 0
+Can Move: No
+Predecessor: NONE
+Successors:
+==================================
+===================================
+===================================
+Eliminating Bounds Checks
+Forward Elimination...
+Comparing  %idxprom = zext i32 %3 to i64 to  %idxprom1 = zext i32 %add to i64
+Checking Lower Bound Subsuming...
+Deleting Lower Bounds Check for   %idxprom1 = zext i32 %add to i64
+Checking Upper Bound Subsuming...
+Comparingi64 1200 to  %1 = zext i32 %0 to i64
+Comparing  %idxprom = zext i32 %3 to i64 to  %idxprom5 = zext i32 %6 to i64
+Checking Lower Bound Subsuming...
+Deleting Lower Bounds Check for   %idxprom5 = zext i32 %6 to i64
+Checking Upper Bound Subsuming...
+Comparingi64 1200 toi64 1200
+Deleting Upper Bounds Check for   %idxprom5 = zext i32 %6 to i64
+Comparing  %idxprom = zext i32 %3 to i64 to  %idxprom7 = zext i32 %7 to i64
+Checking Lower Bound Subsuming...
+Deleting Lower Bounds Check for   %idxprom7 = zext i32 %7 to i64
+Checking Upper Bound Subsuming...
+Comparingi64 1200 toi64 240100
+Deleting Upper Bounds Check for   %idxprom7 = zext i32 %7 to i64
+Comparing  %idxprom = zext i32 %3 to i64 to  %idxprom10 = zext i32 %add9 to i64
+Checking Lower Bound Subsuming...
+Deleting Lower Bounds Check for   %idxprom10 = zext i32 %add9 to i64
+Checking Upper Bound Subsuming...
+Comparingi64 1200 toi64 240100
+Comparing  %idxprom1 = zext i32 %add to i64 to  %idxprom10 = zext i32 %add9 to i64
+Checking Upper Bound Subsuming...
+Comparing  %1 = zext i32 %0 to i64 toi64 240100
+Comparison Value 2 was not identified: i64 240100
+Unknown comparison between   %1 = zext i32 %0 to i64 and i64 240100
+Backwards Elimination...
+Comparing  %idxprom1 = zext i32 %add to i64 to  %idxprom10 = zext i32 %add9 to i64
+Checking Upper Bound Subsuming...
+Comparing  %1 = zext i32 %0 to i64 toi64 240100
+Comparison Value 2 was not identified: i64 240100
+Unknown comparison between   %1 = zext i32 %0 to i64 and i64 240100
+Comparing  %idxprom = zext i32 %3 to i64 to  %idxprom10 = zext i32 %add9 to i64
+Checking Upper Bound Subsuming...
+Comparingi64 1200 toi64 240100
+Deleting Upper Bounds Check for   %idxprom = zext i32 %3 to i64
+Comparing  %idxprom = zext i32 %3 to i64 to  %idxprom1 = zext i32 %add to i64
+===================================
+After Elimination Bounds Checks
+===========================
+Instruction:   store i32 100, i32* %arrayidx, align 4
+Lower Bound Check: 0
+Upper Bound Check (DELETED): i64 1200
+Index:   %idxprom = zext i32 %3 to i64
+Moving Check :No
+Insert Point:   store i32 100, i32* %arrayidx, align 4
+Index: EQUALS variable: i
+===========================
+Instruction:   store i32 100, i32* %arrayidx2, align 4
+Lower Bound Check (DELETED): 0
+Upper Bound Check:   %1 = zext i32 %0 to i64
+Index:   %idxprom1 = zext i32 %add to i64
+Moving Check :No
+Insert Point:   store i32 100, i32* %arrayidx2, align 4
+Index: GREATER_THAN variable: i
+===========================
+Instruction:   store i32 0, i32* %arrayidx6, align 4
+Lower Bound Check (DELETED): 0
+Upper Bound Check (DELETED): i64 1200
+Index:   %idxprom5 = zext i32 %6 to i64
+Moving Check :No
+Insert Point:   store i32 0, i32* %arrayidx6, align 4
+Index: EQUALS variable: i
+===========================
+Instruction:   store i8 0, i8* %arrayidx8, align 1
+Lower Bound Check (DELETED): 0
+Upper Bound Check (DELETED): i64 240100
+Index:   %idxprom7 = zext i32 %7 to i64
+Moving Check :No
+Insert Point:   store i8 0, i8* %arrayidx8, align 1
+Index: EQUALS variable: i
+===========================
+Instruction:   store float 0.000000e+00, float* %arrayidx13, align 4
+Lower Bound Check (DELETED): 0
+Upper Bound Check: i64 240100
+Index:   %idxprom10 = zext i32 %add9 to i64
+Moving Check :Yes
+Insert Point:   %idxprom = zext i32 %3 to i64
+Index: GREATER_THAN variable: i
+===================================
+Inserting Bounds Checks
+Adding Bounds Check:
+===========================
+Instruction:   store i32 100, i32* %arrayidx, align 4
+Lower Bound Check: 0
+Upper Bound Check (DELETED): i64 1200
+Index:   %idxprom = zext i32 %3 to i64
+Moving Check :No
+Insert Point:   store i32 100, i32* %arrayidx, align 4
+Index: EQUALS variable: i
+Emitting Branch Instruction
+Adding Bounds Check:
+===========================
+Instruction:   store i32 100, i32* %arrayidx2, align 4
+Lower Bound Check (DELETED): 0
+Upper Bound Check:   %1 = zext i32 %0 to i64
+Index:   %idxprom1 = zext i32 %add to i64
+Moving Check :No
+Insert Point:   store i32 100, i32* %arrayidx2, align 4
+Index: GREATER_THAN variable: i
+Emitting Branch Instruction
+Adding Bounds Check:
+===========================
+Instruction:   store float 0.000000e+00, float* %arrayidx13, align 4
+Lower Bound Check (DELETED): 0
+Upper Bound Check: i64 240100
+Index:   %idxprom10 = zext i32 %add9 to i64
+Moving Check :Yes
+Insert Point:   %idxprom = zext i32 %3 to i64
+Index: GREATER_THAN variable: i
+Inserting Instructions at:   %idxprom = zext i32 %3 to i64
+Moving instruction:   %idxprom10 = zext i32 %add9 to i64 before   %idxprom = zext i32 %3 to i64
+Moving instruction:   %add9 = add i32 %12, 1 before   %idxprom10 = zext i32 %add9 to i64
+Moving instruction:   %12 = load i32* %i, align 4 before   %add9 = add i32 %12, 1
+Emitting Branch Instruction
+Basic Block (name=entry):3 Checks Added
+===================================
+Total Number of Checks Addded: 3
+  %retval = alloca i32, align 4
+  %a = alloca [300 x i32], align 16
+  %n = alloca i32, align 4
+  %saved_stack = alloca i8*
+  %i = alloca i32, align 4
+  %strt = alloca %struct.st, align 4
+  %cleanup.dest.slot = alloca i32
+  store i32 0, i32* %retval
+  store i32 50, i32* %n, align 4
+  %0 = load i32* %n, align 4
+  %1 = zext i32 %0 to i64
+  %2 = call i8* @llvm.stacksave()
+  store i8* %2, i8** %saved_stack
+  %vla = alloca i32, i64 %1, align 16
+  store i32 200, i32* %n, align 4
+  store i32 10, i32* %i, align 4
+  %3 = load i32* %i, align 4
+  %4 = load i32* %i, align 4
+  %add9 = add i32 %4, 1
+  %idxprom10 = zext i32 %add9 to i64
+  %5 = icmp sge i64 240100, %idxprom10
+  br i1 %5, label %trap, label %6
+  %idxprom = zext i32 %3 to i64
+  %arrayidx = getelementptr inbounds [300 x i32]* %a, i32 0, i64 %idxprom
+  %7 = icmp slt i64 %idxprom, 0
+  br i1 %7, label %trap, label %8
+  store i32 100, i32* %arrayidx, align 4
+  %9 = load i32* %i, align 4
+  %add = add i32 %9, 1
+  %idxprom1 = zext i32 %add to i64
+  %arrayidx2 = getelementptr inbounds i32* %vla, i64 %idxprom1
+  %10 = icmp sge i64 %1, %idxprom1
+  br i1 %10, label %trap, label %11
+  store i32 100, i32* %arrayidx2, align 4
+  %12 = load i32* %i, align 4
+  %idxprom3 = zext i32 %12 to i64
+  %arrayidx4 = getelementptr inbounds i32* %vla, i64 %idxprom3
+  store i32 0, i32* %arrayidx4, align 4
+  %13 = load i32* %i, align 4
+  %idxprom5 = zext i32 %13 to i64
+  %arrayidx6 = getelementptr inbounds [300 x i32]* %a, i32 0, i64 %idxprom5
+  store i32 0, i32* %arrayidx6, align 4
+  %14 = load i32* %i, align 4
+  %idxprom7 = zext i32 %14 to i64
+  %arr = getelementptr inbounds %struct.st* %strt, i32 0, i32 0
+  %arrayidx8 = getelementptr inbounds [100 x i8]* %arr, i32 0, i64 %idxprom7
+  store i8 0, i8* %arrayidx8, align 1
+  %15 = load i32* %i, align 4
+  %idxprom11 = zext i32 %15 to i64
+  %float_arr = getelementptr inbounds %struct.st* %strt, i32 0, i32 1
+  %arrayidx12 = getelementptr inbounds [200 x [300 x float]]* %float_arr, i32 0, i64 %idxprom11
+  %arrayidx13 = getelementptr inbounds [300 x float]* %arrayidx12, i32 0, i64 %idxprom10
+  store float 0.000000e+00, float* %arrayidx13, align 4
+  store i32 0, i32* %retval
+  store i32 1, i32* %cleanup.dest.slot
+  %16 = load i8** %saved_stack
+  call void @llvm.stackrestore(i8* %16)
+  %17 = load i32* %retval
+  ret i32 %17
+  call void @llvm.trap() noreturn nounwind
+  unreachable
