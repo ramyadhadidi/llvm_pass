@@ -1,1 +1,1 @@
-../llvm/build/Release+Asserts/bin/llvm-dis
+../../../build/bin/llvm-dis

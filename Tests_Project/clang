@@ -1,1 +1,1 @@
-../llvm/build/Release+Asserts/bin/clang
+../../../build/bin/clang-3.9

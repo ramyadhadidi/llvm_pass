@@ -1,1 +1,1 @@
-../llvm/build/Release+Asserts/bin/opt
+../../../build/bin/opt
